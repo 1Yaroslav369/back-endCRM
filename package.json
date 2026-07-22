@@ -1,0 +1,28 @@
+{
+  "name": "back-endcrm",
+  "version": "1.0.0",
+  "description": "CRM for the company",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "nodemon src/index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/1Yaroslav369/back-endCRM.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/1Yaroslav369/back-endCRM/issues"
+  },
+  "homepage": "https://github.com/1Yaroslav369/back-endCRM#readme",
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "eslint": "^10.7.0",
+    "globals": "^17.7.0",
+    "nodemon": "^3.1.14"
+  }
+}
