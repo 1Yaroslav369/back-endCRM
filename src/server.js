@@ -12,6 +12,9 @@ import { logger } from './middleware/logger.js';
 import { notFoundHandler } from './middleware/notFoundHandler.js';
 import { errorHandler } from './middleware/errorHandler.js';
 
+//routes
+import authRoutes from './routes/authRoutes.js';
+
 const app = express();
 const PORT = process.env.PORT || 3000;
 
@@ -24,6 +27,8 @@ app.use((req, res, next) => {
   console.log(`Time: ${new Date().toLocaleString()}`);
   next();
 });
+
+app.use(authRoutes);
 
 app.use(notFoundHandler);
 app.use(errors());
