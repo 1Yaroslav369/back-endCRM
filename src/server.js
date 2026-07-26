@@ -3,6 +3,7 @@ import cors from 'cors';
 import 'dotenv/config';
 import helmet from 'helmet';
 import { errors } from 'celebrate';
+import cookieParser from 'cookie-parser';
 
 //DB
 import checkDatabase from './db/connectDB.js';
@@ -22,6 +23,7 @@ app.use(logger);
 app.use(helmet());
 app.use(cors());
 app.use(express.json());
+app.use(cookieParser());
 
 app.use((req, res, next) => {
   console.log(`Time: ${new Date().toLocaleString()}`);

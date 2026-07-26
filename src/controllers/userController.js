@@ -6,6 +6,8 @@ import bcrypt from 'bcrypt';
 import createHttpError from 'http-errors';
 //!services
 import * as auth from '../services/auth.js';
+//
+import { pool } from '../db/connectDB.js';
 
 export const registerUser = async (req, res, next) => {
   try {
@@ -66,6 +68,74 @@ export const loginUser = async (req, res, next) => {
     };
 
     res.status(200).json(safeUser);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const logoutUser = async (req, res, next) => {
+  try {
+    const { refreshToken} = req.cookies;
+
+    console.log('refreshToken:', refreshToken);
+    if(refreshToken) {
+      await pool.execute('DELETE FROM sessions WHERE refresh_token = ?', [refreshToken]);
+    }
+    res.clearCookie('sessionid');
+    res.clearCookie('refreshToken');
+    res.status(204).send();
+
+  } catch (error) {
+    next(error);
+  }
+};
+
+
+export const refreshUserSession = async (req, res, next) => {
+  try {
+    const { refreshToken } = req.cookies;
+
+    if (!refreshToken) {
+      return next(createHttpError(401, 'Refresh token not found'));
+    }
+
+    // Ищем сессию по refreshToken
+    const [rows] = await pool.execute(
+      'SELECT * FROM sessions WHERE refresh_token = ?',
+      [refreshToken]
+    );
+
+    if (rows.length === 0) {
+      return next(createHttpError(401, 'Session not found'));
+    }
+
+    const session = rows[0];
+
+    // Проверяем срок действия refreshToken
+    if (new Date() > new Date(session.refresh_token_valid_until)) {
+      await pool.execute(
+        'DELETE FROM sessions WHERE refresh_token = ?',
+        [refreshToken]
+      );
+
+      return next(createHttpError(401, 'Session token expired'));
+    }
+
+    // Удаляем старую сессию
+    await pool.execute(
+      'DELETE FROM sessions WHERE refresh_token = ?',
+      [refreshToken]
+    );
+
+    // Создаем новую сессию
+    const newSession = await auth.createSession(session.user_id);
+
+    // Записываем новую cookie
+    auth.setSessionCookies(res, newSession);
+
+    res.status(200).json({
+      message: 'Session refreshed',
+    });
   } catch (error) {
     next(error);
   }
