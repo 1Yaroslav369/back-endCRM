@@ -99,7 +99,7 @@ export const refreshUserSession = async (req, res, next) => {
       return next(createHttpError(401, 'Refresh token not found'));
     }
 
-    // Ищем сессию по refreshToken
+    //find session by refreshToken
     const [rows] = await pool.execute(
       'SELECT * FROM sessions WHERE refresh_token = ?',
       [refreshToken]
@@ -111,7 +111,7 @@ export const refreshUserSession = async (req, res, next) => {
 
     const session = rows[0];
 
-    // Проверяем срок действия refreshToken
+    // Check if the session is expired
     if (new Date() > new Date(session.refresh_token_valid_until)) {
       await pool.execute(
         'DELETE FROM sessions WHERE refresh_token = ?',
@@ -121,16 +121,16 @@ export const refreshUserSession = async (req, res, next) => {
       return next(createHttpError(401, 'Session token expired'));
     }
 
-    // Удаляем старую сессию
+    // delite old session
     await pool.execute(
       'DELETE FROM sessions WHERE refresh_token = ?',
       [refreshToken]
     );
 
-    // Создаем новую сессию
+    // create new session
     const newSession = await auth.createSession(session.user_id);
 
-    // Записываем новую cookie
+    // Set new session cookies
     auth.setSessionCookies(res, newSession);
 
     res.status(200).json({
