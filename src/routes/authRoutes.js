@@ -5,7 +5,8 @@ import { celebrate } from 'celebrate';
 import {
   registerUser,
   loginUser,
-  logoutUser
+  logoutUser,
+  refreshUserSession
 } from '../controllers/userController.js';
 
 //import validations
@@ -19,5 +20,6 @@ const router = Router();
 router.post('/auth/register', celebrate(registerValidation), registerUser);
 router.post('/auth/login', celebrate(loginValidation), loginUser);
 router.post('/auth/logout', logoutUser);
+router.get('/auth/refresh', refreshUserSession);
 
 export default router;

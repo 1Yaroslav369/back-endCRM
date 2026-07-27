@@ -23,7 +23,7 @@ export const authenticate = async (req, res, next) => {
     const user = await User.findById(session.user_id);
 
     if (!user) {
-      return next(createHttpError(401, 'User not found'));
+      return next(createHttpError(404, 'User not found'));
     }
 
     req.user = user;
@@ -33,3 +33,4 @@ export const authenticate = async (req, res, next) => {
     next(error);
   }
 };
+

@@ -75,21 +75,21 @@ export const loginUser = async (req, res, next) => {
 
 export const logoutUser = async (req, res, next) => {
   try {
-    const { refreshToken} = req.cookies;
+    const { refreshToken } = req.cookies;
 
     console.log('refreshToken:', refreshToken);
-    if(refreshToken) {
-      await pool.execute('DELETE FROM sessions WHERE refresh_token = ?', [refreshToken]);
+    if (refreshToken) {
+      await pool.execute('DELETE FROM sessions WHERE refresh_token = ?', [
+        refreshToken,
+      ]);
     }
     res.clearCookie('sessionid');
     res.clearCookie('refreshToken');
     res.status(204).send();
-
   } catch (error) {
     next(error);
   }
 };
-
 
 export const refreshUserSession = async (req, res, next) => {
   try {
@@ -99,43 +99,52 @@ export const refreshUserSession = async (req, res, next) => {
       return next(createHttpError(401, 'Refresh token not found'));
     }
 
-    //find session by refreshToken
-    const [rows] = await pool.execute(
+    // Find session by refresh token
+    const [sessions] = await pool.execute(
       'SELECT * FROM sessions WHERE refresh_token = ?',
-      [refreshToken]
+      [refreshToken],
     );
 
-    if (rows.length === 0) {
+    if (sessions.length === 0) {
       return next(createHttpError(401, 'Session not found'));
     }
 
-    const session = rows[0];
+    const session = sessions[0];
 
-    // Check if the session is expired
+    // Check if refresh token is expired
     if (new Date() > new Date(session.refresh_token_valid_until)) {
-      await pool.execute(
-        'DELETE FROM sessions WHERE refresh_token = ?',
-        [refreshToken]
-      );
+      await pool.execute('DELETE FROM sessions WHERE refresh_token = ?', [
+        refreshToken,
+      ]);
 
       return next(createHttpError(401, 'Session token expired'));
     }
 
-    // delite old session
-    await pool.execute(
-      'DELETE FROM sessions WHERE refresh_token = ?',
-      [refreshToken]
-    );
+    // Delete old session
+    await pool.execute('DELETE FROM sessions WHERE refresh_token = ?', [
+      refreshToken,
+    ]);
 
-    // create new session
+    // Create new session
     const newSession = await auth.createSession(session.user_id);
 
-    // Set new session cookies
+    // Set new cookies
     auth.setSessionCookies(res, newSession);
 
-    res.status(200).json({
-      message: 'Session refreshed',
-    });
+    // Get current user
+    const [users] = await pool.execute(
+      `SELECT id, login, name, role
+      FROM users
+      WHERE id = ?`,
+      [session.user_id],
+    );
+
+    if (users.length === 0) {
+      return next(createHttpError(404, 'User not found'));
+    }
+
+    // Return user
+    res.status(200).json(users[0]);
   } catch (error) {
     next(error);
   }
