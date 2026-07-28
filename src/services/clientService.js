@@ -97,3 +97,16 @@ export const updateClient = async (id, data) => {
 
   return result.affectedRows;
 };
+
+// DELETE CLIENT
+export const deleteClient = async (id) => {
+  const [result] = await pool.execute(
+    `
+    DELETE FROM clients
+    WHERE id = ?
+    `,
+    [id],
+  );
+
+  return result.affectedRows;
+};
