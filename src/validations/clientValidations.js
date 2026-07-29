@@ -4,6 +4,7 @@ import { Segments } from 'celebrate';
 export const createClientValidation = {
   [Segments.BODY]: Joi.object({
     name: Joi.string().min(2).max(255).required(),
+    nip: Joi.string().max(20).allow('', null),
     phone: Joi.string().min(7).max(50).allow('', null),
     email: Joi.string().email().allow('', null),
     city: Joi.string().max(100).allow('', null),

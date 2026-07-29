@@ -4,9 +4,13 @@ import { pool } from '../db/connectDB.js';
 export const getClients = async () => {
   const [rows] = await pool.execute(
     `
-    SELECT *
-    FROM clients
-    ORDER BY created_at DESC
+  SELECT
+  clients.*,
+  users.name AS created_by_name
+  FROM clients
+  LEFT JOIN users
+  ON clients.created_by = users.id
+  ORDER BY clients.created_at DESC
     `,
   );
 
@@ -28,7 +32,7 @@ export const getClientById = async (id) => {
 };
 
 // CREATE CLIENT
-export const createClient = async (data) => {
+export const createClient = async (data, userId) => {
   const {
     name,
     phone = null,
@@ -41,17 +45,18 @@ export const createClient = async (data) => {
   const [result] = await pool.execute(
     `
     INSERT INTO clients
-    (
-      name,
-      phone,
-      email,
-      city,
-      address,
-      comment
-    )
-    VALUES (?, ?, ?, ?, ?, ?)
+(
+  name,
+  phone,
+  email,
+  city,
+  address,
+  comment,
+  created_by
+)
+VALUES (?, ?, ?, ?, ?, ?, ?)
     `,
-    [name, phone, email, city, address, comment],
+    [name, phone, email, city, address, comment, userId],
   );
 
   const client = await getClientById(result.insertId);

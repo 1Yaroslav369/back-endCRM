@@ -1,14 +1,17 @@
 import createHttpError from 'http-errors';
+
 import Session from '../models/session.js';
 import User from '../models/user.js';
 
 export const authenticate = async (req, res, next) => {
   try {
-    if (!req.cookies.accessToken) {
-      return next(createHttpError(401, 'Missing access token'));
+    const { refreshToken } = req.cookies;
+
+    if (!refreshToken) {
+      return next(createHttpError(401, 'Missing refresh token'));
     }
 
-    const session = await Session.findByToken(req.cookies.refreshToken);
+    const session = await Session.findByToken(refreshToken);
 
     if (!session) {
       return next(createHttpError(401, 'Invalid session'));
@@ -26,11 +29,15 @@ export const authenticate = async (req, res, next) => {
       return next(createHttpError(404, 'User not found'));
     }
 
-    req.user = user;
+    req.user = {
+      id: user.id,
+      name: user.name,
+      login: user.login,
+      role: user.role,
+    };
 
     next();
   } catch (error) {
     next(error);
   }
 };
-

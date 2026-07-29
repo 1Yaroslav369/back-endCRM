@@ -1,4 +1,4 @@
-import {pool} from '../db/connectDB.js';
+import { pool } from '../db/connectDB.js';
 
 class User {
   static async createUser(name, login, password, role) {
@@ -10,10 +10,22 @@ class User {
     return result.insertId;
   }
 
+
   static async findOneByLogin(login) {
-    const [rows] = await pool.execute('SELECT * FROM users WHERE login = ?', [
-      login,
-    ]);
+    const [rows] = await pool.execute(
+      'SELECT * FROM users WHERE login = ?',
+      [login],
+    );
+
+    return rows[0] || null;
+  }
+
+
+  static async findById(id) {
+    const [rows] = await pool.execute(
+      'SELECT * FROM users WHERE id = ?',
+      [id],
+    );
 
     return rows[0] || null;
   }

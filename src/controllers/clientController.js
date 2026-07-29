@@ -1,20 +1,30 @@
 import * as clientService from '../services/clientService.js';
-//get
+
+
+// GET /clients
 export const getClients = async (req, res, next) => {
   try {
+
     const clients = await clientService.getClients();
 
     res.json(clients);
-  } catch (error) {
+
+  } catch(error) {
     next(error);
   }
 };
-//get:id
+
+
+
+// GET /clients/:id
 export const getClientById = async (req, res, next) => {
   try {
+
     const { id } = req.params;
 
+
     const client = await clientService.getClientById(id);
+
 
     if (!client) {
       return res.status(404).json({
@@ -22,27 +32,54 @@ export const getClientById = async (req, res, next) => {
       });
     }
 
+
     res.json(client);
-  } catch (error) {
+
+
+  } catch(error) {
     next(error);
   }
 };
-//post
+
+
+
+
+// POST /clients
 export const createClient = async (req, res, next) => {
   try {
-    const client = await clientService.createClient(req.body);
+
+
+    const client = await clientService.createClient(
+      req.body,
+      req.user.id
+    );
+
 
     res.status(201).json(client);
-  } catch (error) {
+
+
+  } catch(error) {
     next(error);
   }
 };
-//pathc
+
+
+
+
+// PATCH /clients/:id
 export const updateClient = async (req, res, next) => {
   try {
+
+
     const { id } = req.params;
 
-    const updated = await clientService.updateClient(id, req.body);
+
+    const updated = await clientService.updateClient(
+      id,
+      req.body,
+      req.user.id
+    );
+
 
     if (!updated) {
       return res.status(404).json({
@@ -50,25 +87,43 @@ export const updateClient = async (req, res, next) => {
       });
     }
 
+
     const client = await clientService.getClientById(id);
 
+
     res.json(client);
-  } catch (error) {
+
+
+  } catch(error) {
     next(error);
   }
 };
 
-//delete
+
+
+
+// DELETE /clients/:id
 export const deleteClient = async (req, res, next) => {
-  const { id } = req.params;
+  try {
 
-  const deleted = await clientService.deleteClient(id);
 
-  if(!deleted) {
-    return res.status(404).json({
-      message: 'Client not found',
-    });
+    const { id } = req.params;
+
+
+    const deleted = await clientService.deleteClient(id);
+
+
+    if (!deleted) {
+      return res.status(404).json({
+        message: 'Client not found',
+      });
+    }
+
+
+    res.status(204).send();
+
+
+  } catch(error) {
+    next(error);
   }
-
-  res.status(204).send();
 };
