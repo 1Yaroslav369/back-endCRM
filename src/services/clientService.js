@@ -5,12 +5,13 @@ export const getClients = async () => {
   const [rows] = await pool.execute(
     `
   SELECT
-  clients.*,
-  users.name AS created_by_name
+    clients.*,
+    users.name AS created_by_name
   FROM clients
   LEFT JOIN users
-  ON clients.created_by = users.id
-  ORDER BY clients.created_at DESC
+    ON clients.created_by = users.id
+  WHERE clients.archived_at IS NULL
+  ORDER BY clients.created_at DESC;
     `,
   );
 
@@ -103,15 +104,17 @@ export const updateClient = async (id, data) => {
   return result.affectedRows;
 };
 
-// DELETE CLIENT
-export const deleteClient = async (id) => {
+export const archiveClient = async (id, userId) => {
   const [result] = await pool.execute(
     `
-    DELETE FROM clients
+    UPDATE clients
+    SET
+      archived_at = NOW(),
+      updated_by = ?
     WHERE id = ?
     `,
-    [id],
+    [userId, id],
   );
 
-  return result.affectedRows;
+  return result.affectedRows > 0;
 };

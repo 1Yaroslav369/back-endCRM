@@ -14,7 +14,7 @@ import {
   getClients,
   getClientById,
   updateClient,
-  deleteClient,
+  archiveClient,
 } from '../controllers/clientController.js';
 
 const router = Router();
@@ -42,11 +42,11 @@ router.patch(
   updateClient,
 );
 
-router.delete(
-  '/clients/:id',
+router.patch(
+  '/clients/:id/archive',
   authenticate,
   celebrate(getClientValidation),
-  deleteClient,
+  archiveClient,
 );
 
 export default router;
