@@ -36,6 +36,7 @@ export const getClientById = async (id) => {
 export const createClient = async (data, userId) => {
   const {
     name,
+    nip = null,
     phone = null,
     email = null,
     city = null,
@@ -48,6 +49,7 @@ export const createClient = async (data, userId) => {
     INSERT INTO clients
 (
   name,
+  nip,
   phone,
   email,
   city,
@@ -55,9 +57,9 @@ export const createClient = async (data, userId) => {
   comment,
   created_by
 )
-VALUES (?, ?, ?, ?, ?, ?, ?)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?)
     `,
-    [name, phone, email, city, address, comment, userId],
+    [name, nip, phone, email, city, address, comment, userId],
   );
 
   const client = await getClientById(result.insertId);
@@ -66,42 +68,27 @@ VALUES (?, ?, ?, ?, ?, ?, ?)
 };
 
 // UPDATE CLIENT
-export const updateClient = async (id, data) => {
-  const allowedFields = [
-    'name',
-    'phone',
-    'email',
-    'city',
-    'address',
-    'comment',
-  ];
-
-  const fields = [];
-  const values = [];
-
-  Object.entries(data).forEach(([key, value]) => {
-    if (allowedFields.includes(key)) {
-      fields.push(`${key} = ?`);
-      values.push(value);
-    }
-  });
-
-  if (fields.length === 0) {
-    return 0;
-  }
-
-  values.push(id);
+export const updateClient = async (id, data, userId) => {
+  const { name, nip, phone, email, city, address, comment } = data;
 
   const [result] = await pool.execute(
     `
     UPDATE clients
-    SET ${fields.join(', ')}
+    SET
+      name = ?,
+      nip = ?,
+      phone = ?,
+      email = ?,
+      city = ?,
+      address = ?,
+      comment = ?,
+      updated_by = ?
     WHERE id = ?
     `,
-    values,
+    [name, nip, phone, email, city, address, comment, userId, id],
   );
 
-  return result.affectedRows;
+  return result.affectedRows > 0;
 };
 
 export const archiveClient = async (id, userId) => {

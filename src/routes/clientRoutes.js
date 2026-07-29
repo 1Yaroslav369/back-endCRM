@@ -45,7 +45,7 @@ router.patch(
 router.patch(
   '/clients/:id/archive',
   authenticate,
-  celebrate(getClientValidation),
+  celebrate(updateClientValidation),
   archiveClient,
 );
 
