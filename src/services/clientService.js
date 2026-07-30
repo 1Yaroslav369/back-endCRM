@@ -22,9 +22,13 @@ export const getClients = async () => {
 export const getClientById = async (id) => {
   const [rows] = await pool.execute(
     `
-    SELECT *
-    FROM clients
-    WHERE id = ?
+    SELECT
+  clients.*,
+  users.name AS created_by_name
+  FROM clients
+  LEFT JOIN users
+  ON clients.created_by = users.id
+  WHERE clients.id = ?;
     `,
     [id],
   );

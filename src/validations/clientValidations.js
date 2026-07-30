@@ -20,21 +20,14 @@ export const updateClientValidation = {
 
   [Segments.BODY]: Joi.object({
     name: Joi.string().min(2).optional(),
-
     nip: Joi.string().allow('').optional(),
-
     phone: Joi.string().allow('').optional(),
-
     email: Joi.string().email().allow('').optional(),
-
     city: Joi.string().allow('').optional(),
-
     address: Joi.string().allow('').optional(),
-
     comment: Joi.string().allow('').optional(),
   }),
 };
-
 
 export const getClientValidation = {
   [Segments.PARAMS]: Joi.object({
