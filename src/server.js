@@ -16,6 +16,7 @@ import { errorHandler } from './middleware/errorHandler.js';
 //routes
 import authRoutes from './routes/authRoutes.js';
 import clientRoutes from './routes/clientRoutes.js';
+import orderRoutes from './routes/orderRoutes.js';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -36,6 +37,7 @@ app.use((req, res, next) => {
 
 app.use(authRoutes);
 app.use(clientRoutes);
+app.use(orderRoutes);
 
 app.use(notFoundHandler);
 app.use(errors());

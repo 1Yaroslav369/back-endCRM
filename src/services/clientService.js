@@ -109,3 +109,25 @@ export const archiveClient = async (id, userId) => {
 
   return result.affectedRows > 0;
 };
+
+export const checkClientAccess = async (clientId, user) => {
+  if (!user) {
+    return false;
+  }
+
+  if (user.role === 'ADMIN') {
+    return true;
+  }
+
+  const [rows] = await pool.execute(
+    `
+    SELECT id
+    FROM clients
+    WHERE id = ?
+    AND created_by = ?
+    `,
+    [clientId, user.id],
+  );
+
+  return rows.length > 0;
+};
