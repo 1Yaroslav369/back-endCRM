@@ -8,7 +8,15 @@ export const createOrder = async (data, user) => {
     throw new Error('You cannot create order for this client');
   }
 
-  const orderNumber = `ORD-${Date.now()}`;
+  const lastOrder = await Order.getLastOrderNumber();
+  let nextNumber = 1;
+
+  if (lastOrder) {
+    nextNumber = Number(lastOrder.split('-')[2]) + 1;
+  }
+
+  const year = new Date().getFullYear();
+  const orderNumber = `ORD-${year}-${String(nextNumber).padStart(6, '0')}`;
 
   const orderId = await Order.create({
     client_id: data.client_id,

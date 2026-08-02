@@ -112,6 +112,17 @@ class Order {
 
     return rows[0] || null;
   }
+
+  static async getLastOrderNumber() {
+    const [rows] = await pool.execute(`
+      SELECT order_number
+      FROM orders
+      ORDER BY created_at DESC
+      LIMIT 1
+    `);
+
+    return rows[0]?.order_number || null;
+  }
 }
 
 export default Order;
