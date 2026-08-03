@@ -43,37 +43,45 @@ class Order {
     return result.insertId;
   }
 
-  static async findAll(user) {
+  static async findAll(user, client_id) {
     let query = `
-      SELECT
-        orders.*,
-        clients.name AS client_name,
-        users.name AS created_by_name
+    SELECT
+      orders.*,
+      clients.name AS client_name,
+      users.name AS created_by_name
 
-      FROM orders
+    FROM orders
 
-      LEFT JOIN clients
-        ON orders.client_id = clients.id
+    LEFT JOIN clients
+      ON orders.client_id = clients.id
 
-      LEFT JOIN users
-        ON orders.created_by = users.id
+    LEFT JOIN users
+      ON orders.created_by = users.id
 
-      WHERE orders.is_archived = 0
-    `;
+    WHERE orders.is_archived = 0
+  `;
 
     const params = [];
 
+    if (client_id) {
+      query += `
+      AND orders.client_id = ?
+    `;
+
+      params.push(client_id);
+    }
+
     if (user.role !== 'ADMIN') {
       query += `
-        AND orders.created_by = ?
-      `;
+      AND orders.created_by = ?
+    `;
 
       params.push(user.id);
     }
 
     query += `
-      ORDER BY orders.created_at DESC
-    `;
+    ORDER BY orders.created_at DESC
+  `;
 
     const [rows] = await pool.execute(query, params);
 

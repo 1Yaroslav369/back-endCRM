@@ -2,7 +2,9 @@ import * as orderService from '../services/orderService.js';
 
 export const getOrders = async (req, res, next) => {
   try {
-    const orders = await orderService.getOrders(req.user);
+    const { client_id } = req.query;
+
+    const orders = await orderService.getOrders(req.user, client_id);
 
     res.json(orders);
   } catch (error) {

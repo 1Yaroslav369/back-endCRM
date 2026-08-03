@@ -12,7 +12,11 @@ export const createOrder = async (data, user) => {
   let nextNumber = 1;
 
   if (lastOrder) {
-    nextNumber = Number(lastOrder.split('-')[2]) + 1;
+    const parts = lastOrder.split('-');
+
+    if (parts.length === 3) {
+      nextNumber = Number(parts[2]) + 1;
+    }
   }
 
   const year = new Date().getFullYear();
@@ -32,8 +36,8 @@ export const createOrder = async (data, user) => {
   return orderId;
 };
 
-export const getOrders = async (user) => {
-  return await Order.findAll(user);
+export const getOrders = async (user, client_id) => {
+  return await Order.findAll(user, client_id);
 };
 
 export const getOrderById = async (id, user) => {
@@ -42,7 +46,6 @@ export const getOrderById = async (id, user) => {
   if (!order) {
     return null;
   }
-
 
   return order;
 };
