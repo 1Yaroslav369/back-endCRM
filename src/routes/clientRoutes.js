@@ -15,11 +15,14 @@ import {
   getClientById,
   updateClient,
   archiveClient,
+  searchClients,
 } from '../controllers/clientController.js';
 
 const router = Router();
 
 router.get('/clients', authenticate, getClients);
+
+router.get('/clients/search', authenticate, searchClients);
 
 router.get(
   '/clients/:id',

@@ -131,3 +131,33 @@ export const checkClientAccess = async (clientId, user) => {
 
   return rows.length > 0;
 };
+
+export const searchClients = async (query) => {
+  if (!query || query.trim().length < 2) {
+    return [];
+  }
+
+  const searchQuery = `%${query.trim()}%`;
+
+  const [rows] = await pool.execute(
+    `
+    SELECT
+      clients.*,
+      users.name AS created_by_name
+    FROM clients
+    LEFT JOIN users
+      ON clients.created_by = users.id
+    WHERE clients.archived_at IS NULL
+      AND (
+        clients.name LIKE ?
+      )
+    ORDER BY clients.created_at DESC
+    Limit 10;
+    `,
+    [
+      searchQuery,
+    ],
+  );
+
+  return rows;
+};

@@ -80,3 +80,15 @@ export const archiveClient = async (req, res, next) => {
     next(error);
   }
 };
+
+//get clients/search
+
+export const searchClients = async (req, res, next) => {
+  try {
+    const { query } = req.query;
+    const clients = await clientService.searchClients(query);
+    res.json(clients);
+  } catch (error) {
+    next(error);
+  }
+};
