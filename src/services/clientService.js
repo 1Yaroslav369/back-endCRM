@@ -115,7 +115,7 @@ export const checkClientAccess = async (clientId, user) => {
     return false;
   }
 
-  if (user.role === 'ADMIN') {
+  if (user.role === 'ADMIN' || user.role === 'MANAGER') {
     return true;
   }
 

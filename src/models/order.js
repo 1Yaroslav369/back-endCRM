@@ -71,13 +71,13 @@ class Order {
       params.push(client_id);
     }
 
-    if (user.role !== 'ADMIN') {
-      query += `
-      AND orders.created_by = ?
-    `;
+    // if (user.role !== 'ADMIN') {
+    //   query += `
+    //   AND orders.created_by = ?
+    // `;
 
-      params.push(user.id);
-    }
+    //   params.push(user.id);
+    // }
 
     query += `
     ORDER BY orders.created_at DESC
@@ -108,13 +108,13 @@ class Order {
 
     const params = [id];
 
-    if (user.role !== 'ADMIN') {
-      query += `
-      AND orders.created_by = ?
-    `;
+    // if (user.role !== 'ADMIN') {
+    //   query += `
+    //   AND orders.created_by = ?
+    // `;
 
-      params.push(user.id);
-    }
+    //   params.push(user.id);
+    // }
 
     const [rows] = await pool.execute(query, params);
 
