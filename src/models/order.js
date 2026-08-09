@@ -8,7 +8,8 @@ class Order {
       order_number,
       title,
       status,
-      total_price,
+      net_price,
+      vat,
       deadline,
       comment,
     } = data;
@@ -22,11 +23,12 @@ class Order {
         order_number,
         title,
         status,
-        total_price,
+        net_price,
+        vat,
         deadline,
         comment
       )
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
       `,
       [
         client_id,
@@ -34,7 +36,8 @@ class Order {
         order_number,
         title,
         status,
-        total_price,
+        net_price,
+        vat,
         deadline,
         comment,
       ],
@@ -45,43 +48,43 @@ class Order {
 
   static async findAll(user, client_id) {
     let query = `
-    SELECT
-      orders.*,
-      clients.name AS client_name,
-      users.name AS created_by_name
+      SELECT
+        orders.*,
+        clients.name AS client_name,
+        users.name AS created_by_name,
 
-    FROM orders
+        ROUND(orders.net_price * orders.vat / 100, 2) AS vat_amount,
 
-    LEFT JOIN clients
-      ON orders.client_id = clients.id
+        ROUND(
+          orders.net_price +
+          (orders.net_price * orders.vat / 100),
+          2
+        ) AS total_price
 
-    LEFT JOIN users
-      ON orders.created_by = users.id
+      FROM orders
 
-    WHERE orders.is_archived = 0
-  `;
+      LEFT JOIN clients
+        ON orders.client_id = clients.id
+
+      LEFT JOIN users
+        ON orders.created_by = users.id
+
+      WHERE orders.is_archived = 0
+    `;
 
     const params = [];
 
     if (client_id) {
       query += `
-      AND orders.client_id = ?
-    `;
+        AND orders.client_id = ?
+      `;
 
       params.push(client_id);
     }
 
-    // if (user.role !== 'ADMIN') {
-    //   query += `
-    //   AND orders.created_by = ?
-    // `;
-
-    //   params.push(user.id);
-    // }
-
     query += `
-    ORDER BY orders.created_at DESC
-  `;
+      ORDER BY orders.created_at DESC
+    `;
 
     const [rows] = await pool.execute(query, params);
 
@@ -89,45 +92,70 @@ class Order {
   }
 
   static async findById(id, user) {
-    let query = `
-    SELECT
-      orders.*,
-      clients.name AS client_name,
-      users.name AS created_by_name
+    const [rows] = await pool.execute(
+      `
+      SELECT
+        orders.*,
+        clients.name AS client_name,
+        users.name AS created_by_name,
 
-    FROM orders
+        ROUND(orders.net_price * orders.vat / 100, 2) AS vat_amount,
 
-    LEFT JOIN clients
-      ON orders.client_id = clients.id
+        ROUND(
+          orders.net_price +
+          (orders.net_price * orders.vat / 100),
+          2
+        ) AS total_price
 
-    LEFT JOIN users
-      ON orders.created_by = users.id
+      FROM orders
 
-    WHERE orders.id = ?
-  `;
+      LEFT JOIN clients
+        ON orders.client_id = clients.id
 
-    const params = [id];
+      LEFT JOIN users
+        ON orders.created_by = users.id
 
-    // if (user.role !== 'ADMIN') {
-    //   query += `
-    //   AND orders.created_by = ?
-    // `;
-
-    //   params.push(user.id);
-    // }
-
-    const [rows] = await pool.execute(query, params);
+      WHERE orders.id = ?
+        AND orders.is_archived = 0
+      `,
+      [id],
+    );
 
     return rows[0] || null;
   }
 
+  static async update(id, data) {
+    const { title, status, net_price, vat, deadline, comment } = data;
+
+    const [result] = await pool.execute(
+      `
+      UPDATE orders
+      SET
+        title = ?,
+        status = ?,
+        net_price = ?,
+        vat = ?,
+        deadline = ?,
+        comment = ?,
+        updated_at = CURRENT_TIMESTAMP
+      WHERE id = ?
+        AND is_archived = 0
+      `,
+      [title, status, net_price, vat, deadline, comment, id],
+    );
+
+    return result.affectedRows > 0;
+  }
+
   static async getLastOrderNumber() {
-    const [rows] = await pool.execute(`
+    const [rows] = await pool.execute(
+      `
       SELECT order_number
       FROM orders
       ORDER BY created_at DESC
       LIMIT 1
-    `);
+      `,
+    );
 
     return rows[0]?.order_number || null;
   }

@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import { celebrate } from 'celebrate';
 
 import {
   getOrders,
@@ -9,15 +10,28 @@ import {
 import { authenticate } from '../middleware/authenticate.js';
 import { authorize } from '../middleware/authorize.js';
 
+import { createOrderValidation } from '../validations/ordersValidation.js';
+
 const router = Router();
 
-// get all orders
+// Get all orders
 router.get('/orders', authenticate, authorize('ADMIN', 'MANAGER'), getOrders);
 
-// get order by id
-router.get('/orders/:id', authenticate, authorize('ADMIN', 'MANAGER'), getOrderById);
+// Get order by id
+router.get(
+  '/orders/:id',
+  authenticate,
+  authorize('ADMIN', 'MANAGER'),
+  getOrderById,
+);
 
-// create order
-router.post('/orders', authenticate, authorize('ADMIN', 'MANAGER'), createOrder);
+// Create order
+router.post(
+  '/orders',
+  authenticate,
+  authorize('ADMIN', 'MANAGER'),
+  celebrate(createOrderValidation),
+  createOrder,
+);
 
 export default router;
