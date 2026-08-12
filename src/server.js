@@ -17,16 +17,19 @@ import { errorHandler } from './middleware/errorHandler.js';
 import authRoutes from './routes/authRoutes.js';
 import clientRoutes from './routes/clientRoutes.js';
 import orderRoutes from './routes/orderRoutes.js';
+import offerRoutes from './routes/offerRoutes.js';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
 app.use(logger);
 app.use(helmet());
-app.use(cors({
-  origin: 'http://localhost:5173',
-  credentials: true,
-}));
+app.use(
+  cors({
+    origin: 'http://localhost:5173',
+    credentials: true,
+  }),
+);
 app.use(express.json());
 app.use(cookieParser());
 
@@ -38,9 +41,10 @@ app.use((req, res, next) => {
 app.use(authRoutes);
 app.use(clientRoutes);
 app.use(orderRoutes);
+app.use(offerRoutes);
 
-app.use(notFoundHandler);
 app.use(errors());
+app.use(notFoundHandler);
 app.use(errorHandler);
 
 await checkDatabase();
