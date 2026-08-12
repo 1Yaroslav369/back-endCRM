@@ -5,6 +5,8 @@ import {
   updateOffer,
 } from '../services/offerService.js';
 
+import { generateOfferPdf } from '../services/offerPdfService.js';
+
 export const createOfferController = async (req, res) => {
   try {
     const offerId = await createOffer(req.body, req.user);
@@ -114,5 +116,32 @@ export const updateOfferController = async (req, res) => {
     res.status(500).json({
       message: error.message || 'Failed to update offer',
     });
+  }
+};
+
+//pdf
+export const downloadOfferPdfController = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+
+    const offer = await getOfferById(id, req.user);
+
+    generateOfferPdf(offer, res);
+  } catch (error) {
+    console.error('downloadOfferPdfController error:', error);
+
+    if (error.message === 'Offer not found') {
+      return res.status(404).json({
+        message: error.message,
+      });
+    }
+
+    if (error.message === 'You do not have access to this client') {
+      return res.status(403).json({
+        message: error.message,
+      });
+    }
+
+    return next(error);
   }
 };

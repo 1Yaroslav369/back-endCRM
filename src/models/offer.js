@@ -53,7 +53,11 @@ class Offer {
     let query = `
       SELECT
         offers.*,
+
         clients.name AS client_name,
+        clients.phone AS phone,
+        clients.email AS email,
+
         users.name AS created_by_name,
 
         ROUND(
@@ -102,7 +106,11 @@ class Offer {
       `
       SELECT
         offers.*,
+
         clients.name AS client_name,
+        clients.phone AS phone,
+        clients.email AS email,
+
         users.name AS created_by_name,
 
         ROUND(

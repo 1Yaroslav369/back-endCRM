@@ -6,6 +6,7 @@ import {
   getOffersController,
   getOfferByIdController,
   updateOfferController,
+  downloadOfferPdfController,
 } from '../controllers/offerController.js';
 
 import {
@@ -48,4 +49,10 @@ router.patch(
   updateOfferController,
 );
 
+router.get(
+  '/offers/:id/download',
+  authenticate,
+  authorize('ADMIN', 'MANAGER'),
+  downloadOfferPdfController,
+);
 export default router;
