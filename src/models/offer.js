@@ -1,6 +1,7 @@
 import { pool } from '../db/connectDB.js';
 
 class Offer {
+  // CREATE OFFER
   static async create(data) {
     const {
       client_id,
@@ -49,6 +50,7 @@ class Offer {
     return result.insertId;
   }
 
+  // GET ALL OFFERS
   static async findAll(user, client_id) {
     let query = `
       SELECT
@@ -101,6 +103,7 @@ class Offer {
     return rows;
   }
 
+  // GET OFFER BY ID
   static async findById(id, user) {
     const [rows] = await pool.execute(
       `
@@ -141,6 +144,7 @@ class Offer {
     return rows[0] || null;
   }
 
+  // UPDATE OFFER
   static async update(id, data) {
     const { title, description, status, net_price, vat, valid_until, comment } =
       data;
@@ -166,6 +170,24 @@ class Offer {
     return result.affectedRows > 0;
   }
 
+  // UPDATE OFFER STATUS
+  static async updateStatus(id, status) {
+    const [result] = await pool.execute(
+      `
+      UPDATE offers
+      SET
+        status = ?,
+        updated_at = CURRENT_TIMESTAMP
+      WHERE id = ?
+        AND is_archived = 0
+      `,
+      [status, id],
+    );
+
+    return result.affectedRows > 0;
+  }
+
+  // GET LAST OFFER NUMBER
   static async getLastOfferNumber() {
     const [rows] = await pool.execute(
       `

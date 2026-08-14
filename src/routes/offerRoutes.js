@@ -7,11 +7,13 @@ import {
   getOfferByIdController,
   updateOfferController,
   downloadOfferPdfController,
+  updateOfferStatusController,
 } from '../controllers/offerController.js';
 
 import {
   createOfferSchema,
   updateOfferSchema,
+  updateOfferStatusSchema,
 } from '../validations/offerValidations.js';
 
 import { authorize } from '../middleware/authorize.js';
@@ -47,6 +49,14 @@ router.patch(
   authorize('ADMIN', 'MANAGER'),
   celebrate(updateOfferSchema),
   updateOfferController,
+);
+
+router.patch(
+  '/offers/:id/status',
+  authenticate,
+  authorize('ADMIN', 'MANAGER'),
+  celebrate(updateOfferStatusSchema),
+  updateOfferStatusController,
 );
 
 router.get(

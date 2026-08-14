@@ -3,6 +3,7 @@ import {
   getOffers,
   getOfferById,
   updateOffer,
+  updateOfferStatus,
 } from '../services/offerService.js';
 
 import { generateOfferPdf } from '../services/offerPdfService.js';
@@ -86,6 +87,44 @@ export const getOfferByIdController = async (req, res) => {
   }
 };
 
+// UPDATE OFFER STATUS
+export const updateOfferStatusController = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { status } = req.body;
+
+    const offer = await updateOfferStatus(id, status, req.user);
+
+    res.status(200).json({
+      message: 'Offer status updated successfully',
+      offer,
+    });
+  } catch (error) {
+    console.error('updateOfferStatusController error:', error);
+
+    if (error.message === 'Offer not found') {
+      return res.status(404).json({
+        message: error.message,
+      });
+    }
+
+    if (error.message === 'You do not have access to this client') {
+      return res.status(403).json({
+        message: error.message,
+      });
+    }
+
+    if (error.message.startsWith('Cannot change offer status')) {
+      return res.status(400).json({
+        message: error.message,
+      });
+    }
+
+    next(error);
+  }
+};
+
+// UPDATE OFFER
 export const updateOfferController = async (req, res) => {
   try {
     const { id } = req.params;
@@ -119,7 +158,7 @@ export const updateOfferController = async (req, res) => {
   }
 };
 
-//pdf
+// DOWNLOAD OFFER PDF
 export const downloadOfferPdfController = async (req, res, next) => {
   try {
     const { id } = req.params;
@@ -142,6 +181,6 @@ export const downloadOfferPdfController = async (req, res, next) => {
       });
     }
 
-    return next(error);
+    next(error);
   }
 };
