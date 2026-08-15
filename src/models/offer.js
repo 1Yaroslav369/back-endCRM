@@ -4,16 +4,19 @@ class Offer {
   // CREATE OFFER
   static async create(data) {
     const {
-      client_id,
+      client_id = null,
+      client_name = null,
+      client_phone = null,
+      client_email = null,
       created_by,
       offer_number,
       title,
-      description,
+      description = null,
       status,
       net_price,
       vat,
-      valid_until,
-      comment,
+      valid_until = null,
+      comment = null,
     } = data;
 
     const [result] = await pool.execute(
@@ -21,6 +24,9 @@ class Offer {
       INSERT INTO offers
       (
         client_id,
+        client_name,
+        client_phone,
+        client_email,
         created_by,
         offer_number,
         title,
@@ -31,10 +37,13 @@ class Offer {
         valid_until,
         comment
       )
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `,
       [
         client_id,
+        client_name,
+        client_phone,
+        client_email,
         created_by,
         offer_number,
         title,
@@ -54,11 +63,25 @@ class Offer {
   static async findAll(user, client_id) {
     let query = `
       SELECT
-        offers.*,
+        offers.id,
+        offers.client_id,
 
-        clients.name AS client_name,
-        clients.phone AS phone,
-        clients.email AS email,
+        COALESCE(clients.name, offers.client_name) AS client_name,
+        COALESCE(clients.phone, offers.client_phone) AS client_phone,
+        COALESCE(clients.email, offers.client_email) AS client_email,
+
+        offers.created_by,
+        offers.offer_number,
+        offers.title,
+        offers.description,
+        offers.status,
+        offers.net_price,
+        offers.vat,
+        offers.valid_until,
+        offers.comment,
+        offers.is_archived,
+        offers.created_at,
+        offers.updated_at,
 
         users.name AS created_by_name,
 
@@ -108,11 +131,25 @@ class Offer {
     const [rows] = await pool.execute(
       `
       SELECT
-        offers.*,
+        offers.id,
+        offers.client_id,
 
-        clients.name AS client_name,
-        clients.phone AS phone,
-        clients.email AS email,
+        COALESCE(clients.name, offers.client_name) AS client_name,
+        COALESCE(clients.phone, offers.client_phone) AS client_phone,
+        COALESCE(clients.email, offers.client_email) AS client_email,
+
+        offers.created_by,
+        offers.offer_number,
+        offers.title,
+        offers.description,
+        offers.status,
+        offers.net_price,
+        offers.vat,
+        offers.valid_until,
+        offers.comment,
+        offers.is_archived,
+        offers.created_at,
+        offers.updated_at,
 
         users.name AS created_by_name,
 
@@ -197,9 +234,10 @@ class Offer {
         updated_at = CURRENT_TIMESTAMP
       WHERE id = ?
         AND is_archived = 0
-        `,
-        [status, id]
+      `,
+      [status, id],
     );
+
     return result.affectedRows > 0;
   }
 

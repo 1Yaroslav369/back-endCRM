@@ -4,14 +4,14 @@ import { pool } from '../db/connectDB.js';
 export const getClients = async () => {
   const [rows] = await pool.execute(
     `
-  SELECT
-    clients.*,
-    users.name AS created_by_name
-  FROM clients
-  LEFT JOIN users
-    ON clients.created_by = users.id
-  WHERE clients.archived_at IS NULL
-  ORDER BY clients.created_at DESC;
+    SELECT
+      clients.*,
+      users.name AS created_by_name
+    FROM clients
+    LEFT JOIN users
+      ON clients.created_by = users.id
+    WHERE clients.archived_at IS NULL
+    ORDER BY clients.created_at DESC;
     `,
   );
 
@@ -23,12 +23,12 @@ export const getClientById = async (id) => {
   const [rows] = await pool.execute(
     `
     SELECT
-  clients.*,
-  users.name AS created_by_name
-  FROM clients
-  LEFT JOIN users
-  ON clients.created_by = users.id
-  WHERE clients.id = ?;
+      clients.*,
+      users.name AS created_by_name
+    FROM clients
+    LEFT JOIN users
+      ON clients.created_by = users.id
+    WHERE clients.id = ?;
     `,
     [id],
   );
@@ -51,17 +51,17 @@ export const createClient = async (data, userId) => {
   const [result] = await pool.execute(
     `
     INSERT INTO clients
-(
-  name,
-  nip,
-  phone,
-  email,
-  city,
-  address,
-  comment,
-  created_by
-)
-VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    (
+      name,
+      nip,
+      phone,
+      email,
+      city,
+      address,
+      comment,
+      created_by
+    )
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
     `,
     [name, nip, phone, email, city, address, comment, userId],
   );
@@ -69,6 +69,53 @@ VALUES (?, ?, ?, ?, ?, ?, ?, ?)
   const client = await getClientById(result.insertId);
 
   return client;
+};
+
+// CREATE CLIENT WITH CONNECTION
+// Used when client creation must be part of a transaction
+export const createClientWithConnection = async (connection, data, userId) => {
+  const {
+    name,
+    nip = null,
+    phone = null,
+    email = null,
+    city = null,
+    address = null,
+    comment = null,
+  } = data;
+
+  const [result] = await connection.execute(
+    `
+    INSERT INTO clients
+    (
+      name,
+      nip,
+      phone,
+      email,
+      city,
+      address,
+      comment,
+      created_by
+    )
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    `,
+    [name, nip, phone, email, city, address, comment, userId],
+  );
+
+  const [rows] = await connection.execute(
+    `
+    SELECT
+      clients.*,
+      users.name AS created_by_name
+    FROM clients
+    LEFT JOIN users
+      ON clients.created_by = users.id
+    WHERE clients.id = ?
+    `,
+    [result.insertId],
+  );
+
+  return rows[0];
 };
 
 // UPDATE CLIENT
@@ -95,6 +142,7 @@ export const updateClient = async (id, data, userId) => {
   return result.affectedRows > 0;
 };
 
+// ARCHIVE CLIENT
 export const archiveClient = async (id, userId) => {
   const [result] = await pool.execute(
     `
@@ -110,6 +158,7 @@ export const archiveClient = async (id, userId) => {
   return result.affectedRows > 0;
 };
 
+// CHECK CLIENT ACCESS
 export const checkClientAccess = async (clientId, user) => {
   if (!user) {
     return false;
@@ -124,7 +173,7 @@ export const checkClientAccess = async (clientId, user) => {
     SELECT id
     FROM clients
     WHERE id = ?
-    AND created_by = ?
+      AND created_by = ?
     `,
     [clientId, user.id],
   );
@@ -132,6 +181,7 @@ export const checkClientAccess = async (clientId, user) => {
   return rows.length > 0;
 };
 
+// SEARCH CLIENTS
 export const searchClients = async (query) => {
   if (!query || query.trim().length < 2) {
     return [];
@@ -148,15 +198,11 @@ export const searchClients = async (query) => {
     LEFT JOIN users
       ON clients.created_by = users.id
     WHERE clients.archived_at IS NULL
-      AND (
-        clients.name LIKE ?
-      )
+      AND clients.name LIKE ?
     ORDER BY clients.created_at DESC
-    Limit 10;
+    LIMIT 10;
     `,
-    [
-      searchQuery,
-    ],
+    [searchQuery],
   );
 
   return rows;

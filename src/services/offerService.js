@@ -1,14 +1,19 @@
 import Offer from '../models/offer.js';
 import Order from '../models/order.js';
 import { pool } from '../db/connectDB.js';
-import { checkClientAccess } from './clientService.js';
+import {
+  checkClientAccess,
+  createClientWithConnection,
+} from './clientService.js';
 
 // CREATE OFFER
 export const createOffer = async (data, user) => {
-  const hasAccess = await checkClientAccess(data.client_id, user);
+  if (data.client_id) {
+    const hasAccess = await checkClientAccess(data.client_id, user);
 
-  if (!hasAccess) {
-    throw new Error('You do not have access to this client');
+    if (!hasAccess) {
+      throw new Error('You do not have access to this client');
+    }
   }
 
   const lastOfferNumber = await Offer.getLastOfferNumber();
@@ -36,7 +41,6 @@ export const createOffer = async (data, user) => {
 };
 
 // GET ALL OFFERS
-
 export const getOffers = async (user, client_id) => {
   if (client_id) {
     const hasAccess = await checkClientAccess(client_id, user);
@@ -50,7 +54,6 @@ export const getOffers = async (user, client_id) => {
 };
 
 // GET OFFER BY ID
-
 export const getOfferById = async (id, user) => {
   const offer = await Offer.findById(id, user);
 
@@ -58,17 +61,19 @@ export const getOfferById = async (id, user) => {
     throw new Error('Offer not found');
   }
 
-  const hasAccess = await checkClientAccess(offer.client_id, user);
+  // Check client access only if the offer has a client
+  if (offer.client_id) {
+    const hasAccess = await checkClientAccess(offer.client_id, user);
 
-  if (!hasAccess) {
-    throw new Error('You do not have access to this client');
+    if (!hasAccess) {
+      throw new Error('You do not have access to this client');
+    }
   }
 
   return offer;
 };
 
 // UPDATE OFFER
-
 export const updateOffer = async (id, data, user) => {
   const offer = await Offer.findById(id, user);
 
@@ -76,17 +81,19 @@ export const updateOffer = async (id, data, user) => {
     throw new Error('Offer not found');
   }
 
-  const hasAccess = await checkClientAccess(offer.client_id, user);
+  // Check client access only if the offer has a client
+  if (offer.client_id) {
+    const hasAccess = await checkClientAccess(offer.client_id, user);
 
-  if (!hasAccess) {
-    throw new Error('You do not have access to this client');
+    if (!hasAccess) {
+      throw new Error('You do not have access to this client');
+    }
   }
 
   return await Offer.update(id, data);
 };
 
 // UPDATE OFFER STATUS
-
 export const updateOfferStatus = async (id, status, user) => {
   const offer = await Offer.findById(id, user);
 
@@ -94,19 +101,22 @@ export const updateOfferStatus = async (id, status, user) => {
     throw new Error('Offer not found');
   }
 
-  const hasAccess = await checkClientAccess(offer.client_id, user);
+  // Check client access only if the offer has a client
+  if (offer.client_id) {
+    const hasAccess = await checkClientAccess(offer.client_id, user);
 
-  if (!hasAccess) {
-    throw new Error('You do not have access to this client');
+    if (!hasAccess) {
+      throw new Error('You do not have access to this client');
+    }
   }
 
   const currentStatus = offer.status;
 
-  // Allowed status transitions
+  // CONVERTED can only be set by convertOfferToOrder()
   const allowedTransitions = {
     DRAFT: ['SENT'],
     SENT: ['ACCEPTED', 'REJECTED', 'EXPIRED'],
-    ACCEPTED: ['CONVERTED'],
+    ACCEPTED: [],
     REJECTED: [],
     EXPIRED: [],
     CONVERTED: [],
@@ -120,7 +130,6 @@ export const updateOfferStatus = async (id, status, user) => {
     );
   }
 
-  // Update status
   const updated = await Offer.updateStatus(id, status);
 
   if (!updated) {
@@ -130,17 +139,12 @@ export const updateOfferStatus = async (id, status, user) => {
   return await Offer.findById(id, user);
 };
 
+// CONVERT OFFER TO ORDER
 export const convertOfferToOrder = async (id, user) => {
   const offer = await Offer.findById(id, user);
 
   if (!offer) {
     throw new Error('Offer not found');
-  }
-
-  const hasAccess = await checkClientAccess(offer.client_id, user);
-
-  if (!hasAccess) {
-    throw new Error('You do not have access to this client');
   }
 
   if (offer.status !== 'ACCEPTED') {
@@ -149,11 +153,59 @@ export const convertOfferToOrder = async (id, user) => {
     );
   }
 
+  // Check access only if the offer already has a client
+  if (offer.client_id) {
+    const hasAccess = await checkClientAccess(offer.client_id, user);
+
+    if (!hasAccess) {
+      throw new Error('You do not have access to this client');
+    }
+  }
+
   const connection = await pool.getConnection();
 
   try {
     await connection.beginTransaction();
+    let clientId = offer.client_id;
 
+    if (!clientId) {
+      if (!offer.client_name) {
+        throw new Error(
+          'Cannot convert offer without client. Client name is required.',
+        );
+      }
+
+      const client = await createClientWithConnection(
+        connection,
+        {
+          name: offer.client_name,
+          phone: offer.client_phone || null,
+          email: offer.client_email || null,
+        },
+        user.id,
+      );
+
+      clientId = client.id;
+
+      // Attach newly created client to the offer
+      const [offerUpdate] = await connection.execute(
+        `
+        UPDATE offers
+        SET
+          client_id = ?,
+          updated_at = CURRENT_TIMESTAMP
+        WHERE id = ?
+          AND is_archived = 0
+        `,
+        [clientId, id],
+      );
+
+      if (offerUpdate.affectedRows === 0) {
+        throw new Error('Failed to attach client to offer');
+      }
+    }
+
+    // Get next order number
     const [rows] = await connection.execute(
       `
       SELECT order_number
@@ -176,11 +228,11 @@ export const convertOfferToOrder = async (id, user) => {
     }
 
     const year = new Date().getFullYear();
-
     const orderNumber = `ORD-${year}-${String(nextNumber).padStart(6, '0')}`;
 
+    // Create order
     const orderId = await Order.createWithConnection(connection, {
-      client_id: offer.client_id,
+      client_id: clientId,
       created_by: user.id,
       order_number: orderNumber,
       title: offer.title,
@@ -191,6 +243,7 @@ export const convertOfferToOrder = async (id, user) => {
       comment: offer.comment || null,
     });
 
+    // CONVERTED can only happen here
     const updated = await Offer.updateStatusWithConnection(
       connection,
       id,
@@ -204,7 +257,6 @@ export const convertOfferToOrder = async (id, user) => {
     await connection.commit();
 
     const order = await Order.findById(orderId, user);
-
     const convertedOffer = await Offer.findById(id, user);
 
     return {

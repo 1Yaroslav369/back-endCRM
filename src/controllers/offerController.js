@@ -12,7 +12,6 @@ import { generateOfferPdf } from '../services/offerPdfService.js';
 export const createOfferController = async (req, res) => {
   try {
     const offerId = await createOffer(req.body, req.user);
-
     const offer = await getOfferById(offerId, req.user);
 
     res.status(201).json({
