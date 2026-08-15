@@ -8,6 +8,7 @@ import {
   updateOfferController,
   downloadOfferPdfController,
   updateOfferStatusController,
+  convertOfferToOrderController,
 } from '../controllers/offerController.js';
 
 import {
@@ -27,6 +28,13 @@ router.post(
   authorize('ADMIN', 'MANAGER'),
   celebrate(createOfferSchema),
   createOfferController,
+);
+
+router.post(
+  '/offers/:id/convert-to-order',
+  authenticate,
+  authorize('ADMIN', 'MANAGER'),
+  convertOfferToOrderController,
 );
 
 router.get(

@@ -1,6 +1,7 @@
 import { pool } from '../db/connectDB.js';
 
 class Order {
+  // CREATE ORDER
   static async create(data) {
     const {
       client_id,
@@ -46,6 +47,53 @@ class Order {
     return result.insertId;
   }
 
+  // CREATE ORDER INSIDE TRANSACTION
+  static async createWithConnection(connection, data) {
+    const {
+      client_id,
+      created_by,
+      order_number,
+      title,
+      status,
+      net_price,
+      vat,
+      deadline,
+      comment,
+    } = data;
+
+    const [result] = await connection.execute(
+      `
+      INSERT INTO orders
+      (
+        client_id,
+        created_by,
+        order_number,
+        title,
+        status,
+        net_price,
+        vat,
+        deadline,
+        comment
+      )
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+      `,
+      [
+        client_id,
+        created_by,
+        order_number,
+        title,
+        status,
+        net_price,
+        vat,
+        deadline,
+        comment,
+      ],
+    );
+
+    return result.insertId;
+  }
+
+  // GET ALL ORDERS
   static async findAll(user, client_id) {
     let query = `
       SELECT
@@ -53,7 +101,10 @@ class Order {
         clients.name AS client_name,
         users.name AS created_by_name,
 
-        ROUND(orders.net_price * orders.vat / 100, 2) AS vat_amount,
+        ROUND(
+          orders.net_price * orders.vat / 100,
+          2
+        ) AS vat_amount,
 
         ROUND(
           orders.net_price +
@@ -91,6 +142,7 @@ class Order {
     return rows;
   }
 
+  // GET ORDER BY ID
   static async findById(id, user) {
     const [rows] = await pool.execute(
       `
@@ -99,7 +151,10 @@ class Order {
         clients.name AS client_name,
         users.name AS created_by_name,
 
-        ROUND(orders.net_price * orders.vat / 100, 2) AS vat_amount,
+        ROUND(
+          orders.net_price * orders.vat / 100,
+          2
+        ) AS vat_amount,
 
         ROUND(
           orders.net_price +
@@ -124,6 +179,7 @@ class Order {
     return rows[0] || null;
   }
 
+  // UPDATE ORDER
   static async update(id, data) {
     const { title, status, net_price, vat, deadline, comment } = data;
 
@@ -147,6 +203,7 @@ class Order {
     return result.affectedRows > 0;
   }
 
+  // GET LAST ORDER NUMBER
   static async getLastOrderNumber() {
     const [rows] = await pool.execute(
       `

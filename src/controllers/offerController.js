@@ -4,6 +4,7 @@ import {
   getOfferById,
   updateOffer,
   updateOfferStatus,
+  convertOfferToOrder,
 } from '../services/offerService.js';
 
 import { generateOfferPdf } from '../services/offerPdfService.js';
@@ -155,6 +156,42 @@ export const updateOfferController = async (req, res) => {
     res.status(500).json({
       message: error.message || 'Failed to update offer',
     });
+  }
+};
+
+// CONVERT OFFER TO ORDER
+export const convertOfferToOrderController = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+
+    const result = await convertOfferToOrder(Number(id), req.user);
+
+    res.status(201).json({
+      message: 'Offer converted to order successfully',
+      ...result,
+    });
+  } catch (error) {
+    console.error('convertOfferToOrderController error:', error);
+
+    if (error.message === 'Offer not found') {
+      return res.status(404).json({
+        message: error.message,
+      });
+    }
+
+    if (error.message === 'You do not have access to this client') {
+      return res.status(403).json({
+        message: error.message,
+      });
+    }
+
+    if (error.message.startsWith('Only ACCEPTED offers can be converted')) {
+      return res.status(400).json({
+        message: error.message,
+      });
+    }
+
+    next(error);
   }
 };
 

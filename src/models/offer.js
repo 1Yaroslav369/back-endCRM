@@ -187,6 +187,22 @@ class Offer {
     return result.affectedRows > 0;
   }
 
+  // UPDATE OFFER STATUS WITH CONNECTION
+  static async updateStatusWithConnection(connection, id, status) {
+    const [result] = await connection.execute(
+      `
+      UPDATE offers
+      SET
+        status = ?,
+        updated_at = CURRENT_TIMESTAMP
+      WHERE id = ?
+        AND is_archived = 0
+        `,
+        [status, id]
+    );
+    return result.affectedRows > 0;
+  }
+
   // GET LAST OFFER NUMBER
   static async getLastOfferNumber() {
     const [rows] = await pool.execute(

@@ -1,8 +1,9 @@
 import Offer from '../models/offer.js';
+import Order from '../models/order.js';
+import { pool } from '../db/connectDB.js';
 import { checkClientAccess } from './clientService.js';
 
 // CREATE OFFER
-
 export const createOffer = async (data, user) => {
   const hasAccess = await checkClientAccess(data.client_id, user);
 
@@ -127,4 +128,93 @@ export const updateOfferStatus = async (id, status, user) => {
   }
 
   return await Offer.findById(id, user);
+};
+
+export const convertOfferToOrder = async (id, user) => {
+  const offer = await Offer.findById(id, user);
+
+  if (!offer) {
+    throw new Error('Offer not found');
+  }
+
+  const hasAccess = await checkClientAccess(offer.client_id, user);
+
+  if (!hasAccess) {
+    throw new Error('You do not have access to this client');
+  }
+
+  if (offer.status !== 'ACCEPTED') {
+    throw new Error(
+      `Only ACCEPTED offers can be converted. Current status: ${offer.status}`,
+    );
+  }
+
+  const connection = await pool.getConnection();
+
+  try {
+    await connection.beginTransaction();
+
+    const [rows] = await connection.execute(
+      `
+      SELECT order_number
+      FROM orders
+      ORDER BY created_at DESC
+      LIMIT 1
+      `,
+    );
+
+    let nextNumber = 1;
+
+    const lastOrderNumber = rows[0]?.order_number;
+
+    if (lastOrderNumber) {
+      const match = lastOrderNumber.match(/^ORD-\d{4}-(\d+)$/);
+
+      if (match) {
+        nextNumber = Number(match[1]) + 1;
+      }
+    }
+
+    const year = new Date().getFullYear();
+
+    const orderNumber = `ORD-${year}-${String(nextNumber).padStart(6, '0')}`;
+
+    const orderId = await Order.createWithConnection(connection, {
+      client_id: offer.client_id,
+      created_by: user.id,
+      order_number: orderNumber,
+      title: offer.title,
+      status: 'NEW',
+      net_price: Number(offer.net_price),
+      vat: Number(offer.vat),
+      deadline: null,
+      comment: offer.comment || null,
+    });
+
+    const updated = await Offer.updateStatusWithConnection(
+      connection,
+      id,
+      'CONVERTED',
+    );
+
+    if (!updated) {
+      throw new Error('Failed to convert offer');
+    }
+
+    await connection.commit();
+
+    const order = await Order.findById(orderId, user);
+
+    const convertedOffer = await Offer.findById(id, user);
+
+    return {
+      offer: convertedOffer,
+      order,
+    };
+  } catch (error) {
+    await connection.rollback();
+    throw error;
+  } finally {
+    connection.release();
+  }
 };
