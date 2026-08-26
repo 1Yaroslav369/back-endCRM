@@ -18,6 +18,7 @@ import authRoutes from './routes/authRoutes.js';
 import clientRoutes from './routes/clientRoutes.js';
 import orderRoutes from './routes/orderRoutes.js';
 import offerRoutes from './routes/offerRoutes.js';
+import calculatorRoutes from './routes/calculatorRoutes.js';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -42,6 +43,7 @@ app.use(authRoutes);
 app.use(clientRoutes);
 app.use(orderRoutes);
 app.use(offerRoutes);
+app.use(calculatorRoutes);
 
 app.use(errors());
 app.use(notFoundHandler);
