@@ -22,7 +22,7 @@ const Calculator = {
     return rows[0] || null;
   },
 
-  // Get the base door price for a specific size
+  // Get the base door price for a specific leaf size
   getBlockPriceBySize: async (productId, width, height) => {
     const [rows] = await pool.execute(
       `
@@ -88,7 +88,7 @@ const Calculator = {
     return rows;
   },
 
-  // Get one active option by ID
+  // Get one active product option by ID
   getProductOptionById: async (optionId) => {
     const [rows] = await pool.execute(
       `
@@ -108,6 +108,144 @@ const Calculator = {
       LIMIT 1
       `,
       [optionId],
+    );
+
+    return rows[0] || null;
+  },
+
+  // Get all active lock options for a product
+  getLockOptions: async (productId) => {
+    const [rows] = await pool.execute(
+      `
+      SELECT
+        id,
+        product_id,
+        name,
+        code,
+        price,
+        currency,
+        is_active
+      FROM lock_options
+      WHERE product_id = ?
+        AND is_active = 1
+      ORDER BY id ASC
+      `,
+      [productId],
+    );
+
+    return rows;
+  },
+
+  // Get one active lock option by ID
+  getLockOptionById: async (lockOptionId) => {
+    const [rows] = await pool.execute(
+      `
+      SELECT
+        id,
+        product_id,
+        name,
+        code,
+        price,
+        currency,
+        is_active
+      FROM lock_options
+      WHERE id = ?
+        AND is_active = 1
+      LIMIT 1
+      `,
+      [lockOptionId],
+    );
+
+    return rows[0] || null;
+  },
+
+  // Get all active handle options for a product
+  getHandleOptions: async (productId) => {
+    const [rows] = await pool.execute(
+      `
+      SELECT
+        id,
+        product_id,
+        name,
+        code,
+        price,
+        currency,
+        is_active
+      FROM handle_options
+      WHERE product_id = ?
+        AND is_active = 1
+      ORDER BY id ASC
+      `,
+      [productId],
+    );
+
+    return rows;
+  },
+
+  // Get one active handle option by ID
+  getHandleOptionById: async (handleOptionId) => {
+    const [rows] = await pool.execute(
+      `
+      SELECT
+        id,
+        product_id,
+        name,
+        code,
+        price,
+        currency,
+        is_active
+      FROM handle_options
+      WHERE id = ?
+        AND is_active = 1
+      LIMIT 1
+      `,
+      [handleOptionId],
+    );
+
+    return rows[0] || null;
+  },
+
+  // Get all active ventilation options for a product
+  getVentilationOptions: async (productId) => {
+    const [rows] = await pool.execute(
+      `
+      SELECT
+        id,
+        product_id,
+        name,
+        code,
+        price,
+        currency,
+        is_active
+      FROM ventilation_options
+      WHERE product_id = ?
+        AND is_active = 1
+      ORDER BY id ASC
+      `,
+      [productId],
+    );
+
+    return rows;
+  },
+
+  // Get one active ventilation option by ID
+  getVentilationOptionById: async (ventilationOptionId) => {
+    const [rows] = await pool.execute(
+      `
+      SELECT
+        id,
+        product_id,
+        name,
+        code,
+        price,
+        currency,
+        is_active
+      FROM ventilation_options
+      WHERE id = ?
+        AND is_active = 1
+      LIMIT 1
+      `,
+      [ventilationOptionId],
     );
 
     return rows[0] || null;
@@ -300,6 +438,14 @@ const Calculator = {
         installation_enabled,
         vat,
         eur_rate,
+        markup_percent,
+        discount_percent,
+        total_cost_eur,
+        total_before_discount_eur,
+        total_discount_eur,
+        total_net_pln,
+        vat_amount_pln,
+        total_gross_pln,
         created_at
       FROM calculator_items
       WHERE id = ?
@@ -325,6 +471,14 @@ const Calculator = {
         installation_enabled,
         vat,
         eur_rate,
+        markup_percent,
+        discount_percent,
+        total_cost_eur,
+        total_before_discount_eur,
+        total_discount_eur,
+        total_net_pln,
+        vat_amount_pln,
+        total_gross_pln,
         created_at
       FROM calculator_items
       WHERE product_id = ?
@@ -349,6 +503,7 @@ const Calculator = {
         room,
         leaf_width,
         leaf_height,
+        opening_mode,
         opening_width,
         opening_height,
         lock_code,
@@ -357,6 +512,8 @@ const Calculator = {
         lock_option_id,
         handle_option_id,
         ventilation_option_id,
+        custom_handle_cost,
+        custom_handle_currency,
         created_at
       FROM door_variants
       WHERE id = ?
@@ -381,6 +538,7 @@ const Calculator = {
         room,
         leaf_width,
         leaf_height,
+        opening_mode,
         opening_width,
         opening_height,
         lock_code,
@@ -389,6 +547,8 @@ const Calculator = {
         lock_option_id,
         handle_option_id,
         ventilation_option_id,
+        custom_handle_cost,
+        custom_handle_currency,
         created_at
       FROM door_variants
       WHERE calculator_item_id = ?
@@ -523,6 +683,14 @@ const Calculator = {
       installation_enabled,
       vat,
       eur_rate = null,
+      markup_percent = 0,
+      discount_percent = 0,
+      total_cost_eur = null,
+      total_before_discount_eur = null,
+      total_discount_eur = null,
+      total_net_pln = null,
+      vat_amount_pln = null,
+      total_gross_pln = null,
     } = data;
 
     const [result] = await connection.execute(
@@ -536,9 +704,17 @@ const Calculator = {
         profile_finish_option_id,
         installation_enabled,
         vat,
-        eur_rate
+        eur_rate,
+        markup_percent,
+        discount_percent,
+        total_cost_eur,
+        total_before_discount_eur,
+        total_discount_eur,
+        total_net_pln,
+        vat_amount_pln,
+        total_gross_pln
       )
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `,
       [
         product_id,
@@ -549,6 +725,14 @@ const Calculator = {
         installation_enabled,
         vat,
         eur_rate,
+        markup_percent,
+        discount_percent,
+        total_cost_eur,
+        total_before_discount_eur,
+        total_discount_eur,
+        total_net_pln,
+        vat_amount_pln,
+        total_gross_pln,
       ],
     );
 
@@ -565,6 +749,7 @@ const Calculator = {
       room = null,
       leaf_width,
       leaf_height,
+      opening_mode = 'AUTO',
       opening_width,
       opening_height,
       lock_code = null,
@@ -573,6 +758,8 @@ const Calculator = {
       lock_option_id = null,
       handle_option_id = null,
       ventilation_option_id = null,
+      custom_handle_cost = null,
+      custom_handle_currency = 'EUR',
     } = data;
 
     const [result] = await connection.execute(
@@ -586,6 +773,7 @@ const Calculator = {
         room,
         leaf_width,
         leaf_height,
+        opening_mode,
         opening_width,
         opening_height,
         lock_code,
@@ -593,9 +781,11 @@ const Calculator = {
         ventilation_code,
         lock_option_id,
         handle_option_id,
-        ventilation_option_id
+        ventilation_option_id,
+        custom_handle_cost,
+        custom_handle_currency
       )
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `,
       [
         calculator_item_id,
@@ -605,6 +795,7 @@ const Calculator = {
         room,
         leaf_width,
         leaf_height,
+        opening_mode,
         opening_width,
         opening_height,
         lock_code,
@@ -613,6 +804,8 @@ const Calculator = {
         lock_option_id,
         handle_option_id,
         ventilation_option_id,
+        custom_handle_cost,
+        custom_handle_currency,
       ],
     );
 
