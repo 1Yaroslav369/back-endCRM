@@ -1,5 +1,6 @@
 import Offer from '../models/offer.js';
 import Order from '../models/order.js';
+import Calculator from '../models/calculator.js';
 import { pool } from '../db/connectDB.js';
 import {
   checkClientAccess,
@@ -70,7 +71,40 @@ export const getOfferById = async (id, user) => {
     }
   }
 
-  return offer;
+  // Get all calculator items linked to this offer
+  const calculatorItems = await Calculator.getCalculatorItemsByOfferId(id);
+
+  // Get all variants and their details for every calculator item
+  const items = [];
+
+  for (const item of calculatorItems) {
+    const variants = await Calculator.getDoorVariantsByCalculatorItemId(
+      item.id,
+    );
+
+    const detailedVariants = [];
+
+    for (const variant of variants) {
+      const sides = await Calculator.getDoorVariantSides(variant.id);
+      const options = await Calculator.getDoorVariantOptions(variant.id);
+
+      detailedVariants.push({
+        ...variant,
+        sides,
+        options,
+      });
+    }
+
+    items.push({
+      ...item,
+      variants: detailedVariants,
+    });
+  }
+
+  return {
+    ...offer,
+    calculator_items: items,
+  };
 };
 
 // UPDATE OFFER
@@ -166,6 +200,7 @@ export const convertOfferToOrder = async (id, user) => {
 
   try {
     await connection.beginTransaction();
+
     let clientId = offer.client_id;
 
     if (!clientId) {

@@ -430,6 +430,7 @@ const Calculator = {
       `
       SELECT
         id,
+        offer_id,
         product_id,
         title,
         side_a_option_id,
@@ -463,6 +464,7 @@ const Calculator = {
       `
       SELECT
         id,
+        offer_id,
         product_id,
         title,
         side_a_option_id,
@@ -485,6 +487,40 @@ const Calculator = {
       ORDER BY created_at DESC, id DESC
       `,
       [productId],
+    );
+
+    return rows;
+  },
+
+  // Get all calculator items for an offer
+  getCalculatorItemsByOfferId: async (offerId) => {
+    const [rows] = await pool.execute(
+      `
+    SELECT
+      id,
+      offer_id,
+      product_id,
+      title,
+      side_a_option_id,
+      side_b_option_id,
+      profile_finish_option_id,
+      installation_enabled,
+      vat,
+      eur_rate,
+      markup_percent,
+      discount_percent,
+      total_cost_eur,
+      total_before_discount_eur,
+      total_discount_eur,
+      total_net_pln,
+      vat_amount_pln,
+      total_gross_pln,
+      created_at
+    FROM calculator_items
+    WHERE offer_id = ?
+    ORDER BY created_at ASC, id ASC
+    `,
+      [offerId],
     );
 
     return rows;
@@ -675,6 +711,7 @@ const Calculator = {
   // Create a calculator item
   createCalculatorItem: async (connection, data) => {
     const {
+      offer_id = null,
       product_id,
       title,
       side_a_option_id = null,
@@ -695,28 +732,30 @@ const Calculator = {
 
     const [result] = await connection.execute(
       `
-      INSERT INTO calculator_items
-      (
-        product_id,
-        title,
-        side_a_option_id,
-        side_b_option_id,
-        profile_finish_option_id,
-        installation_enabled,
-        vat,
-        eur_rate,
-        markup_percent,
-        discount_percent,
-        total_cost_eur,
-        total_before_discount_eur,
-        total_discount_eur,
-        total_net_pln,
-        vat_amount_pln,
-        total_gross_pln
-      )
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-      `,
+    INSERT INTO calculator_items
+    (
+      offer_id,
+      product_id,
+      title,
+      side_a_option_id,
+      side_b_option_id,
+      profile_finish_option_id,
+      installation_enabled,
+      vat,
+      eur_rate,
+      markup_percent,
+      discount_percent,
+      total_cost_eur,
+      total_before_discount_eur,
+      total_discount_eur,
+      total_net_pln,
+      vat_amount_pln,
+      total_gross_pln
+    )
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `,
       [
+        offer_id,
         product_id,
         title,
         side_a_option_id,

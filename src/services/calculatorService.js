@@ -13,8 +13,7 @@ export const getCalculatorConfig = async (productId) => {
   const services = await Calculator.getProductServices(productId);
   const locks = await Calculator.getLockOptions(productId);
   const handles = await Calculator.getHandleOptions(productId);
-  const ventilations =
-    await Calculator.getVentilationOptions(productId);
+  const ventilations = await Calculator.getVentilationOptions(productId);
 
   return {
     product,
@@ -36,8 +35,7 @@ const validateOptionBelongsToProduct = async (
     return null;
   }
 
-  const option =
-    await Calculator.getProductOptionById(optionId);
+  const option = await Calculator.getProductOptionById(optionId);
 
   if (!option) {
     throw new Error(`Option ${optionId} not found`);
@@ -53,10 +51,7 @@ const validateOptionBelongsToProduct = async (
     throw new Error(`Option ${optionId} is inactive`);
   }
 
-  if (
-    expectedCategory &&
-    option.category !== expectedCategory
-  ) {
+  if (expectedCategory && option.category !== expectedCategory) {
     throw new Error(
       `Option ${optionId} must have category ${expectedCategory}`,
     );
@@ -66,24 +61,15 @@ const validateOptionBelongsToProduct = async (
 };
 
 // Check that a lock option belongs to the selected product
-const validateLockBelongsToProduct = async (
-  productId,
-  lockOptionId,
-) => {
-  if (
-    lockOptionId === null ||
-    lockOptionId === undefined
-  ) {
+const validateLockBelongsToProduct = async (productId, lockOptionId) => {
+  if (lockOptionId === null || lockOptionId === undefined) {
     return null;
   }
 
-  const lock =
-    await Calculator.getLockOptionById(lockOptionId);
+  const lock = await Calculator.getLockOptionById(lockOptionId);
 
   if (!lock) {
-    throw new Error(
-      `Lock option ${lockOptionId} not found`,
-    );
+    throw new Error(`Lock option ${lockOptionId} not found`);
   }
 
   if (Number(lock.product_id) !== Number(productId)) {
@@ -93,33 +79,22 @@ const validateLockBelongsToProduct = async (
   }
 
   if (!lock.is_active) {
-    throw new Error(
-      `Lock option ${lockOptionId} is inactive`,
-    );
+    throw new Error(`Lock option ${lockOptionId} is inactive`);
   }
 
   return lock;
 };
 
 // Check that a handle option belongs to the selected product
-const validateHandleBelongsToProduct = async (
-  productId,
-  handleOptionId,
-) => {
-  if (
-    handleOptionId === null ||
-    handleOptionId === undefined
-  ) {
+const validateHandleBelongsToProduct = async (productId, handleOptionId) => {
+  if (handleOptionId === null || handleOptionId === undefined) {
     return null;
   }
 
-  const handle =
-    await Calculator.getHandleOptionById(handleOptionId);
+  const handle = await Calculator.getHandleOptionById(handleOptionId);
 
   if (!handle) {
-    throw new Error(
-      `Handle option ${handleOptionId} not found`,
-    );
+    throw new Error(`Handle option ${handleOptionId} not found`);
   }
 
   if (Number(handle.product_id) !== Number(productId)) {
@@ -129,9 +104,7 @@ const validateHandleBelongsToProduct = async (
   }
 
   if (!handle.is_active) {
-    throw new Error(
-      `Handle option ${handleOptionId} is inactive`,
-    );
+    throw new Error(`Handle option ${handleOptionId} is inactive`);
   }
 
   return handle;
@@ -142,75 +115,50 @@ const validateVentilationBelongsToProduct = async (
   productId,
   ventilationOptionId,
 ) => {
-  if (
-    ventilationOptionId === null ||
-    ventilationOptionId === undefined
-  ) {
+  if (ventilationOptionId === null || ventilationOptionId === undefined) {
     return null;
   }
 
   const ventilation =
-    await Calculator.getVentilationOptionById(
-      ventilationOptionId,
-    );
+    await Calculator.getVentilationOptionById(ventilationOptionId);
 
   if (!ventilation) {
-    throw new Error(
-      `Ventilation option ${ventilationOptionId} not found`,
-    );
+    throw new Error(`Ventilation option ${ventilationOptionId} not found`);
   }
 
-  if (
-    Number(ventilation.product_id) !== Number(productId)
-  ) {
+  if (Number(ventilation.product_id) !== Number(productId)) {
     throw new Error(
       `Ventilation option ${ventilationOptionId} does not belong to product ${productId}`,
     );
   }
 
   if (!ventilation.is_active) {
-    throw new Error(
-      `Ventilation option ${ventilationOptionId} is inactive`,
-    );
+    throw new Error(`Ventilation option ${ventilationOptionId} is inactive`);
   }
 
   return ventilation;
 };
 
 // Check that a service belongs to the selected product
-const validateServiceBelongsToProduct = async (
-  productId,
-  serviceId,
-) => {
-  if (
-    serviceId === null ||
-    serviceId === undefined
-  ) {
+const validateServiceBelongsToProduct = async (productId, serviceId) => {
+  if (serviceId === null || serviceId === undefined) {
     throw new Error('Service ID is required');
   }
 
-  const service =
-    await Calculator.getProductServiceById(serviceId);
+  const service = await Calculator.getProductServiceById(serviceId);
 
   if (!service) {
-    throw new Error(
-      `Service ${serviceId} not found`,
-    );
+    throw new Error(`Service ${serviceId} not found`);
   }
 
-  if (
-    Number(service.product_id) !==
-    Number(productId)
-  ) {
+  if (Number(service.product_id) !== Number(productId)) {
     throw new Error(
       `Service ${serviceId} does not belong to product ${productId}`,
     );
   }
 
   if (!service.is_active) {
-    throw new Error(
-      `Service ${service.id} is inactive`,
-    );
+    throw new Error(`Service ${service.id} is inactive`);
   }
 
   const allowedPricingTypes = [
@@ -222,11 +170,7 @@ const validateServiceBelongsToProduct = async (
     'RULE',
   ];
 
-  if (
-    !allowedPricingTypes.includes(
-      service.pricing_type,
-    )
-  ) {
+  if (!allowedPricingTypes.includes(service.pricing_type)) {
     throw new Error(
       `Unsupported pricing type ${service.pricing_type} for service ${service.id}`,
     );
@@ -236,288 +180,162 @@ const validateServiceBelongsToProduct = async (
 };
 
 // Validate a positive number
-const validatePositiveNumber = (
-  value,
-  fieldName,
-) => {
+const validatePositiveNumber = (value, fieldName) => {
   const number = Number(value);
 
-  if (
-    !Number.isFinite(number) ||
-    number <= 0
-  ) {
-    throw new Error(
-      `${fieldName} must be a positive number`,
-    );
+  if (!Number.isFinite(number) || number <= 0) {
+    throw new Error(`${fieldName} must be a positive number`);
   }
 
   return number;
 };
 
 // Validate a positive integer
-const validatePositiveInteger = (
-  value,
-  fieldName,
-) => {
+const validatePositiveInteger = (value, fieldName) => {
   const number = Number(value);
 
-  if (
-    !Number.isInteger(number) ||
-    number <= 0
-  ) {
-    throw new Error(
-      `${fieldName} must be a positive integer`,
-    );
+  if (!Number.isInteger(number) || number <= 0) {
+    throw new Error(`${fieldName} must be a positive integer`);
   }
 
   return number;
 };
 
 // Validate percentage
-const validatePercentage = (
-  value,
-  fieldName,
-) => {
+const validatePercentage = (value, fieldName) => {
   const number = Number(value);
 
-  if (
-    !Number.isFinite(number) ||
-    number < 0 ||
-    number > 100
-  ) {
-    throw new Error(
-      `${fieldName} must be between 0 and 100`,
-    );
+  if (!Number.isFinite(number) || number < 0 || number > 100) {
+    throw new Error(`${fieldName} must be between 0 and 100`);
   }
 
   return number;
 };
 
 // Validate price
-const validatePrice = (
-  price,
-  entityName,
-) => {
+const validatePrice = (price, entityName) => {
   const number = Number(price);
 
-  if (
-    !Number.isFinite(number) ||
-    number < 0
-  ) {
-    throw new Error(
-      `Invalid price for ${entityName}`,
-    );
+  if (!Number.isFinite(number) || number < 0) {
+    throw new Error(`Invalid price for ${entityName}`);
   }
 
   return number;
 };
 
 // Validate supported currency
-const validateCurrency = (
-  currency,
-) => {
-  if (
-    !['EUR', 'UAH', 'PLN'].includes(
-      currency,
-    )
-  ) {
-    throw new Error(
-      `Unsupported currency: ${currency}`,
-    );
+const validateCurrency = (currency) => {
+  if (!['EUR', 'UAH', 'PLN'].includes(currency)) {
+    throw new Error(`Unsupported currency: ${currency}`);
   }
 
   return currency;
 };
 
 // Convert EUR to PLN
-const convertEurToPln = (
-  price,
-  eurRate,
-) => {
-  const amount = validatePrice(
-    price,
-    'EUR price',
-  );
+const convertEurToPln = (price, eurRate) => {
+  const amount = validatePrice(price, 'EUR price');
 
   const rate = Number(eurRate);
 
-  if (
-    !Number.isFinite(rate) ||
-    rate <= 0
-  ) {
-    throw new Error(
-      'EUR to PLN exchange rate is required',
-    );
+  if (!Number.isFinite(rate) || rate <= 0) {
+    throw new Error('EUR to PLN exchange rate is required');
   }
 
   return amount * rate;
 };
 
 // Convert UAH to PLN
-const convertUahToPln = (
-  price,
-  uahToPlnRate,
-) => {
-  const amount = validatePrice(
-    price,
-    'UAH price',
-  );
+const convertUahToPln = (price, uahToPlnRate) => {
+  const amount = validatePrice(price, 'UAH price');
 
-  const rate = Number(
-    uahToPlnRate,
-  );
+  const rate = Number(uahToPlnRate);
 
-  if (
-    !Number.isFinite(rate) ||
-    rate <= 0
-  ) {
-    throw new Error(
-      'UAH to PLN exchange rate is required',
-    );
+  if (!Number.isFinite(rate) || rate <= 0) {
+    throw new Error('UAH to PLN exchange rate is required');
   }
 
   return amount * rate;
 };
 
 // Convert PLN to EUR
-const convertPlnToEur = (
-  price,
-  eurRate,
-) => {
-  const amount = validatePrice(
-    price,
-    'PLN price',
-  );
+const convertPlnToEur = (price, eurRate) => {
+  const amount = validatePrice(price, 'PLN price');
 
   const rate = Number(eurRate);
 
-  if (
-    !Number.isFinite(rate) ||
-    rate <= 0
-  ) {
-    throw new Error(
-      'EUR to PLN exchange rate is required',
-    );
+  if (!Number.isFinite(rate) || rate <= 0) {
+    throw new Error('EUR to PLN exchange rate is required');
   }
 
   return amount / rate;
 };
 
 // Convert any supported currency to PLN
-const convertPriceToPln = (
-  price,
-  currency,
-  eurRate,
-  uahToPlnRate,
-) => {
+const convertPriceToPln = (price, currency, eurRate, uahToPlnRate) => {
   validateCurrency(currency);
 
   if (currency === 'PLN') {
-    return validatePrice(
-      price,
-      'PLN price',
-    );
+    return validatePrice(price, 'PLN price');
   }
 
   if (currency === 'EUR') {
-    return convertEurToPln(
-      price,
-      eurRate,
-    );
+    return convertEurToPln(price, eurRate);
   }
 
   if (currency === 'UAH') {
-    return convertUahToPln(
-      price,
-      uahToPlnRate,
-    );
+    return convertUahToPln(price, uahToPlnRate);
   }
 
-  throw new Error(
-    `Unsupported currency: ${currency}`,
-  );
+  throw new Error(`Unsupported currency: ${currency}`);
 };
 
 // Calculate the mounting opening area
-const calculateOpeningArea = (
-  openingWidth,
-  openingHeight,
-) => {
-  const validWidth =
-    validatePositiveInteger(
-      openingWidth,
-      'Opening width',
-    );
+const calculateOpeningArea = (openingWidth, openingHeight) => {
+  const validWidth = validatePositiveInteger(openingWidth, 'Opening width');
 
-  const validHeight =
-    validatePositiveInteger(
-      openingHeight,
-      'Opening height',
-    );
+  const validHeight = validatePositiveInteger(openingHeight, 'Opening height');
 
-  return (
-    (validWidth * validHeight) /
-    1_000_000
-  );
+  return (validWidth * validHeight) / 1_000_000;
 };
 
 // Calculate mounting opening dimensions
-const calculateOpeningDimensions = (
-  variant,
-) => {
-  const leafWidth =
-    validatePositiveInteger(
-      variant.leaf_width,
-      'Leaf width',
-    );
+const calculateOpeningDimensions = (variant) => {
+  const leafWidth = validatePositiveInteger(variant.leaf_width, 'Leaf width');
 
-  const leafHeight =
-    validatePositiveInteger(
-      variant.leaf_height,
-      'Leaf height',
-    );
+  const leafHeight = validatePositiveInteger(
+    variant.leaf_height,
+    'Leaf height',
+  );
 
-  const openingMode =
-    variant.opening_mode || 'AUTO';
+  const openingMode = variant.opening_mode || 'AUTO';
 
-  if (
-    !['AUTO', 'CUSTOM'].includes(
-      openingMode,
-    )
-  ) {
-    throw new Error(
-      'Opening mode must be AUTO or CUSTOM',
-    );
+  if (!['AUTO', 'CUSTOM'].includes(openingMode)) {
+    throw new Error('Opening mode must be AUTO or CUSTOM');
   }
 
   if (openingMode === 'AUTO') {
     return {
       opening_mode: 'AUTO',
-      opening_width:
-        leafWidth + 100,
-      opening_height:
-        leafHeight + 50,
+      opening_width: leafWidth + 100,
+      opening_height: leafHeight + 50,
     };
   }
 
-  const openingWidth =
-    validatePositiveInteger(
-      variant.opening_width,
-      'Opening width',
-    );
+  const openingWidth = validatePositiveInteger(
+    variant.opening_width,
+    'Opening width',
+  );
 
-  const openingHeight =
-    validatePositiveInteger(
-      variant.opening_height,
-      'Opening height',
-    );
+  const openingHeight = validatePositiveInteger(
+    variant.opening_height,
+    'Opening height',
+  );
 
   return {
     opening_mode: 'CUSTOM',
-    opening_width:
-      openingWidth,
-    opening_height:
-      openingHeight,
+    opening_width: openingWidth,
+    opening_height: openingHeight,
   };
 };
 
@@ -527,29 +345,16 @@ const calculateOpeningDimensions = (
 // Profil 43 and Profil 55 are different products.
 // Their prices are selected from product_size_prices
 // by product_id + leaf width + opening height.
-const validateDoorSize = async (
-  productId,
-  leafWidth,
-  openingHeight,
-) => {
-  const validWidth =
-    validatePositiveInteger(
-      leafWidth,
-      'Leaf width',
-    );
+const validateDoorSize = async (productId, leafWidth, openingHeight) => {
+  const validWidth = validatePositiveInteger(leafWidth, 'Leaf width');
 
-  const validHeight =
-    validatePositiveInteger(
-      openingHeight,
-      'Opening height',
-    );
+  const validHeight = validatePositiveInteger(openingHeight, 'Opening height');
 
-  const price =
-    await Calculator.getBlockPriceBySize(
-      productId,
-      validWidth,
-      validHeight,
-    );
+  const price = await Calculator.getBlockPriceBySize(
+    productId,
+    validWidth,
+    validHeight,
+  );
 
   if (!price) {
     throw new Error(
@@ -557,90 +362,45 @@ const validateDoorSize = async (
     );
   }
 
-  validatePrice(
-    price.price,
-    `door size ${validWidth}x${validHeight}`,
-  );
+  validatePrice(price.price, `door size ${validWidth}x${validHeight}`);
 
-  validateCurrency(
-    price.currency,
-  );
+  validateCurrency(price.currency);
 
   return price;
 };
 
 // Calculate the price of a product option
-const calculateOptionPrice = (
-  option,
-  width,
-  height,
-  eurRate,
-  uahToPlnRate,
-) => {
+const calculateOptionPrice = (option, width, height, eurRate, uahToPlnRate) => {
   if (!option) {
     return 0;
   }
 
   let price;
 
-  if (
-    option.pricing_type === 'FIXED' ||
-    option.pricing_type === 'PER_PIECE'
-  ) {
+  if (option.pricing_type === 'FIXED' || option.pricing_type === 'PER_PIECE') {
     price = Number(option.price);
-  } else if (
-    option.pricing_type === 'PER_M2'
-  ) {
-    const area =
-      calculateOpeningArea(
-        width,
-        height,
-      );
+  } else if (option.pricing_type === 'PER_M2') {
+    const area = calculateOpeningArea(width, height);
 
-    price =
-      Number(option.price) *
-      area;
+    price = Number(option.price) * area;
   } else {
-    throw new Error(
-      `Unsupported option pricing type: ${option.pricing_type}`,
-    );
+    throw new Error(`Unsupported option pricing type: ${option.pricing_type}`);
   }
 
-  validatePrice(
-    price,
-    `option ${option.id}`,
-  );
+  validatePrice(price, `option ${option.id}`);
 
-  return convertPriceToPln(
-    price,
-    option.currency,
-    eurRate,
-    uahToPlnRate,
-  );
+  return convertPriceToPln(price, option.currency, eurRate, uahToPlnRate);
 };
 
 // Calculate lock price
-const calculateLockPrice = (
-  lock,
-  quantity,
-  eurRate,
-  uahToPlnRate,
-) => {
+const calculateLockPrice = (lock, quantity, eurRate, uahToPlnRate) => {
   if (!lock) {
     return 0;
   }
 
-  const validQuantity =
-    validatePositiveInteger(
-      quantity,
-      'Lock quantity',
-    );
+  const validQuantity = validatePositiveInteger(quantity, 'Lock quantity');
 
-  const basePrice =
-    validatePrice(
-      lock.price,
-      `lock ${lock.id}`,
-    );
+  const basePrice = validatePrice(lock.price, `lock ${lock.id}`);
 
   return convertPriceToPln(
     basePrice * validQuantity,
@@ -659,48 +419,30 @@ const calculateHandlePrice = (
   eurRate,
   uahToPlnRate,
 ) => {
-  const validQuantity =
-    validatePositiveInteger(
-      quantity,
-      'Handle quantity',
-    );
+  const validQuantity = validatePositiveInteger(quantity, 'Handle quantity');
 
   let totalPrice = 0;
 
   if (handle) {
-    const basePrice =
-      validatePrice(
-        handle.price,
-        `handle ${handle.id}`,
-      );
+    const basePrice = validatePrice(handle.price, `handle ${handle.id}`);
 
-    totalPrice +=
-      convertPriceToPln(
-        basePrice * validQuantity,
-        handle.currency,
-        eurRate,
-        uahToPlnRate,
-      );
+    totalPrice += convertPriceToPln(
+      basePrice * validQuantity,
+      handle.currency,
+      eurRate,
+      uahToPlnRate,
+    );
   }
 
-  if (
-    customHandleCost !== null &&
-    customHandleCost !== undefined
-  ) {
-    const customCost =
-      validatePrice(
-        customHandleCost,
-        'Custom handle cost',
-      );
+  if (customHandleCost !== null && customHandleCost !== undefined) {
+    const customCost = validatePrice(customHandleCost, 'Custom handle cost');
 
-    totalPrice +=
-      convertPriceToPln(
-        customCost * validQuantity,
-        customHandleCurrency ||
-          'EUR',
-        eurRate,
-        uahToPlnRate,
-      );
+    totalPrice += convertPriceToPln(
+      customCost * validQuantity,
+      customHandleCurrency || 'EUR',
+      eurRate,
+      uahToPlnRate,
+    );
   }
 
   return totalPrice;
@@ -717,17 +459,15 @@ const calculateVentilationPrice = (
     return 0;
   }
 
-  const validQuantity =
-    validatePositiveInteger(
-      quantity,
-      'Ventilation quantity',
-    );
+  const validQuantity = validatePositiveInteger(
+    quantity,
+    'Ventilation quantity',
+  );
 
-  const basePrice =
-    validatePrice(
-      ventilation.price,
-      `ventilation ${ventilation.id}`,
-    );
+  const basePrice = validatePrice(
+    ventilation.price,
+    `ventilation ${ventilation.id}`,
+  );
 
   return convertPriceToPln(
     basePrice * validQuantity,
@@ -747,11 +487,10 @@ const calculateServicePrice = async (
   uahToPlnRate,
   ruleCode = null,
 ) => {
-  const validQuantity =
-    validatePositiveNumber(
-      quantity,
-      `Quantity for service ${service.id}`,
-    );
+  const validQuantity = validatePositiveNumber(
+    quantity,
+    `Quantity for service ${service.id}`,
+  );
 
   if (
     service.pricing_type !== 'RULE' &&
@@ -767,11 +506,7 @@ const calculateServicePrice = async (
     service.pricing_type === 'FIXED' ||
     service.pricing_type === 'PER_PIECE'
   ) {
-    const basePrice =
-      validatePrice(
-        service.price,
-        `service ${service.id}`,
-      );
+    const basePrice = validatePrice(service.price, `service ${service.id}`);
 
     return convertPriceToPln(
       basePrice * validQuantity,
@@ -781,80 +516,44 @@ const calculateServicePrice = async (
     );
   }
 
-  if (
-    service.pricing_type === 'PER_M2'
-  ) {
-    const area =
-      calculateOpeningArea(
-        width,
-        height,
-      );
+  if (service.pricing_type === 'PER_M2') {
+    const area = calculateOpeningArea(width, height);
 
-    const basePrice =
-      validatePrice(
-        service.price,
-        `service ${service.id}`,
-      );
+    const basePrice = validatePrice(service.price, `service ${service.id}`);
 
     return convertPriceToPln(
-      basePrice *
-        area *
-        validQuantity,
+      basePrice * area * validQuantity,
       service.currency,
       eurRate,
       uahToPlnRate,
     );
   }
 
-  if (
-    service.pricing_type === 'PER_METER'
-  ) {
-    const validWidth =
-      validatePositiveInteger(
-        width,
-        'Service width',
-      );
+  if (service.pricing_type === 'PER_METER') {
+    const validWidth = validatePositiveInteger(width, 'Service width');
 
-    const basePrice =
-      validatePrice(
-        service.price,
-        `service ${service.id}`,
-      );
+    const basePrice = validatePrice(service.price, `service ${service.id}`);
 
-    const meters =
-      validWidth / 1000;
+    const meters = validWidth / 1000;
 
     return convertPriceToPln(
-      basePrice *
-        meters *
-        validQuantity,
+      basePrice * meters * validQuantity,
       service.currency,
       eurRate,
       uahToPlnRate,
     );
   }
 
-  if (
-    service.pricing_type === 'BY_SIZE'
-  ) {
-    const validWidth =
-      validatePositiveInteger(
-        width,
-        'Service width',
-      );
+  if (service.pricing_type === 'BY_SIZE') {
+    const validWidth = validatePositiveInteger(width, 'Service width');
 
-    const validHeight =
-      validatePositiveInteger(
-        height,
-        'Service height',
-      );
+    const validHeight = validatePositiveInteger(height, 'Service height');
 
-    const sizePrice =
-      await Calculator.getServicePriceBySize(
-        service.id,
-        validWidth,
-        validHeight,
-      );
+    const sizePrice = await Calculator.getServicePriceBySize(
+      service.id,
+      validWidth,
+      validHeight,
+    );
 
     if (!sizePrice) {
       throw new Error(
@@ -862,11 +561,10 @@ const calculateServicePrice = async (
       );
     }
 
-    const basePrice =
-      validatePrice(
-        sizePrice.price,
-        `service ${service.id} size price`,
-      );
+    const basePrice = validatePrice(
+      sizePrice.price,
+      `service ${service.id} size price`,
+    );
 
     return convertPriceToPln(
       basePrice * validQuantity,
@@ -876,26 +574,17 @@ const calculateServicePrice = async (
     );
   }
 
-  if (
-    service.pricing_type === 'RULE'
-  ) {
-    if (
-      typeof ruleCode !== 'string' ||
-      ruleCode.trim() === ''
-    ) {
-      throw new Error(
-        `Rule code is required for RULE service ${service.id}`,
-      );
+  if (service.pricing_type === 'RULE') {
+    if (typeof ruleCode !== 'string' || ruleCode.trim() === '') {
+      throw new Error(`Rule code is required for RULE service ${service.id}`);
     }
 
-    const normalizedRuleCode =
-      ruleCode.trim();
+    const normalizedRuleCode = ruleCode.trim();
 
-    const rule =
-      await Calculator.getServicePriceByRule(
-        service.id,
-        normalizedRuleCode,
-      );
+    const rule = await Calculator.getServicePriceByRule(
+      service.id,
+      normalizedRuleCode,
+    );
 
     if (!rule) {
       throw new Error(
@@ -903,11 +592,7 @@ const calculateServicePrice = async (
       );
     }
 
-    const basePrice =
-      validatePrice(
-        rule.price,
-        `rule ${normalizedRuleCode}`,
-      );
+    const basePrice = validatePrice(rule.price, `rule ${normalizedRuleCode}`);
 
     return convertPriceToPln(
       basePrice * validQuantity,
@@ -917,39 +602,24 @@ const calculateServicePrice = async (
     );
   }
 
-  throw new Error(
-    `Unsupported service pricing type: ${service.pricing_type}`,
-  );
+  throw new Error(`Unsupported service pricing type: ${service.pricing_type}`);
 };
 
 // Validate both sides of a door variant
-const validateVariantSides = (
-  sides,
-) => {
+const validateVariantSides = (sides) => {
   if (!Array.isArray(sides)) {
-    throw new Error(
-      'Variant sides must be an array',
-    );
+    throw new Error('Variant sides must be an array');
   }
 
   if (sides.length !== 2) {
-    throw new Error(
-      'Each door variant must contain exactly two sides',
-    );
+    throw new Error('Each door variant must contain exactly two sides');
   }
 
-  const sideA = sides.filter(
-    (side) => side.side === 'A',
-  );
+  const sideA = sides.filter((side) => side.side === 'A');
 
-  const sideB = sides.filter(
-    (side) => side.side === 'B',
-  );
+  const sideB = sides.filter((side) => side.side === 'B');
 
-  if (
-    sideA.length !== 1 ||
-    sideB.length !== 1
-  ) {
+  if (sideA.length !== 1 || sideB.length !== 1) {
     throw new Error(
       'Each door variant must contain exactly one A side and one B side',
     );
@@ -970,37 +640,22 @@ const calculateVariant = async (
   eurRate,
   uahToPlnRate,
 ) => {
-  const quantity =
-    validatePositiveInteger(
-      variant.quantity,
-      'Variant quantity',
-    );
+  const quantity = validatePositiveInteger(
+    variant.quantity,
+    'Variant quantity',
+  );
 
-  const { sideA, sideB } =
-    validateVariantSides(
-      variant.sides,
-    );
+  const { sideA, sideB } = validateVariantSides(variant.sides);
 
-  const leafWidth =
-    validatePositiveInteger(
-      variant.leaf_width,
-      'Leaf width',
-    );
+  const leafWidth = validatePositiveInteger(variant.leaf_width, 'Leaf width');
 
-  const leafHeight =
-    validatePositiveInteger(
-      variant.leaf_height,
-      'Leaf height',
-    );
+  const leafHeight = validatePositiveInteger(
+    variant.leaf_height,
+    'Leaf height',
+  );
 
-  const {
-    opening_mode,
-    opening_width,
-    opening_height,
-  } =
-    calculateOpeningDimensions(
-      variant,
-    );
+  const { opening_mode, opening_width, opening_height } =
+    calculateOpeningDimensions(variant);
 
   /*
    * Base door price comes from the product's
@@ -1018,23 +673,20 @@ const calculateVariant = async (
    * The product_id determines which table rows
    * are used.
    */
-  const leafPrice =
-    await validateDoorSize(
-      productId,
-      leafWidth,
-      opening_height,
-    );
+  const leafPrice = await validateDoorSize(
+    productId,
+    leafWidth,
+    opening_height,
+  );
 
-  const baseDoorPricePln =
-    convertPriceToPln(
-      leafPrice.price,
-      leafPrice.currency,
-      eurRate,
-      uahToPlnRate,
-    );
+  const baseDoorPricePln = convertPriceToPln(
+    leafPrice.price,
+    leafPrice.currency,
+    eurRate,
+    uahToPlnRate,
+  );
 
-  let variantCostPln =
-    baseDoorPricePln * quantity;
+  let variantCostPln = baseDoorPricePln * quantity;
 
   const preparedSides = [];
 
@@ -1044,34 +696,26 @@ const calculateVariant = async (
    * Filling prices are calculated independently
    * for side A and side B.
    */
-  for (const side of [
-    sideA,
-    sideB,
-  ]) {
-    const option =
-      await validateOptionBelongsToProduct(
-        productId,
-        side.option_id,
-        'FILLING',
-      );
+  for (const side of [sideA, sideB]) {
+    const option = await validateOptionBelongsToProduct(
+      productId,
+      side.option_id,
+      'FILLING',
+    );
 
     if (!option) {
-      throw new Error(
-        `Option is required for side ${side.side}`,
-      );
+      throw new Error(`Option is required for side ${side.side}`);
     }
 
-    const sidePrice =
-      calculateOptionPrice(
-        option,
-        opening_width,
-        opening_height,
-        eurRate,
-        uahToPlnRate,
-      );
+    const sidePrice = calculateOptionPrice(
+      option,
+      opening_width,
+      opening_height,
+      eurRate,
+      uahToPlnRate,
+    );
 
-    variantCostPln +=
-      sidePrice * quantity;
+    variantCostPln += sidePrice * quantity;
 
     preparedSides.push({
       side: side.side,
@@ -1080,55 +724,44 @@ const calculateVariant = async (
   }
 
   // Calculate the selected lock
-  const lock =
-    await validateLockBelongsToProduct(
-      productId,
-      variant.lock_option_id,
-    );
+  const lock = await validateLockBelongsToProduct(
+    productId,
+    variant.lock_option_id,
+  );
 
   if (lock) {
-    variantCostPln +=
-      calculateLockPrice(
-        lock,
-        quantity,
-        eurRate,
-        uahToPlnRate,
-      );
+    variantCostPln += calculateLockPrice(lock, quantity, eurRate, uahToPlnRate);
   }
 
   // Calculate the selected handle
   // and optional custom handle cost.
-  const handle =
-    await validateHandleBelongsToProduct(
-      productId,
-      variant.handle_option_id,
-    );
+  const handle = await validateHandleBelongsToProduct(
+    productId,
+    variant.handle_option_id,
+  );
 
-  variantCostPln +=
-    calculateHandlePrice(
-      handle,
+  variantCostPln += calculateHandlePrice(
+    handle,
+    quantity,
+    variant.custom_handle_cost,
+    variant.custom_handle_currency,
+    eurRate,
+    uahToPlnRate,
+  );
+
+  // Calculate ventilation
+  const ventilation = await validateVentilationBelongsToProduct(
+    productId,
+    variant.ventilation_option_id,
+  );
+
+  if (ventilation) {
+    variantCostPln += calculateVentilationPrice(
+      ventilation,
       quantity,
-      variant.custom_handle_cost,
-      variant.custom_handle_currency,
       eurRate,
       uahToPlnRate,
     );
-
-  // Calculate ventilation
-  const ventilation =
-    await validateVentilationBelongsToProduct(
-      productId,
-      variant.ventilation_option_id,
-    );
-
-  if (ventilation) {
-    variantCostPln +=
-      calculateVentilationPrice(
-        ventilation,
-        quantity,
-        eurRate,
-        uahToPlnRate,
-      );
   }
 
   /*
@@ -1138,55 +771,43 @@ const calculateVariant = async (
    * RAL powder coating = 40 EUR per door.
    */
   if (profileFinishOption) {
-    const profilePrice =
-      calculateOptionPrice(
-        profileFinishOption,
-        1,
-        1,
-        eurRate,
-        uahToPlnRate,
-      );
+    const profilePrice = calculateOptionPrice(
+      profileFinishOption,
+      1,
+      1,
+      eurRate,
+      uahToPlnRate,
+    );
 
-    variantCostPln +=
-      profilePrice * quantity;
+    variantCostPln += profilePrice * quantity;
   }
 
   const preparedServices = [];
 
   // Calculate additional services
-  for (
-    const serviceData of
-      variant.services || []
-  ) {
-    const service =
-      await validateServiceBelongsToProduct(
-        productId,
-        serviceData.service_id,
-      );
+  for (const serviceData of variant.services || []) {
+    const service = await validateServiceBelongsToProduct(
+      productId,
+      serviceData.service_id,
+    );
 
     // Installation is controlled only by installation_enabled.
-    if (
-      service.code === 'INSTALLATION'
-    ) {
+    if (service.code === 'INSTALLATION') {
       throw new Error(
         'INSTALLATION is managed by installation_enabled and cannot be added manually',
       );
     }
 
     // Quantity is defined per one door.
-    const serviceQuantityPerDoor =
-      validatePositiveNumber(
-        serviceData.quantity,
-        `Quantity for service ${service.id}`,
-      );
+    const serviceQuantityPerDoor = validatePositiveNumber(
+      serviceData.quantity,
+      `Quantity for service ${service.id}`,
+    );
 
     // Calculate total quantity for the whole variant.
-    const serviceQuantity =
-      serviceQuantityPerDoor *
-      quantity;
+    const serviceQuantity = serviceQuantityPerDoor * quantity;
 
-    const ruleCode =
-      serviceData.rule_code ?? null;
+    const ruleCode = serviceData.rule_code ?? null;
 
     /*
      * Dimension-dependent services use the mounting
@@ -1197,25 +818,22 @@ const calculateVariant = async (
      * - PER_METER
      * - BY_SIZE
      */
-    const servicePrice =
-      await calculateServicePrice(
-        service,
-        opening_width,
-        opening_height,
-        serviceQuantity,
-        eurRate,
-        uahToPlnRate,
-        ruleCode,
-      );
+    const servicePrice = await calculateServicePrice(
+      service,
+      opening_width,
+      opening_height,
+      serviceQuantity,
+      eurRate,
+      uahToPlnRate,
+      ruleCode,
+    );
 
-    variantCostPln +=
-      servicePrice;
+    variantCostPln += servicePrice;
 
     preparedServices.push({
       service_id: service.id,
       rule_code: ruleCode,
-      quantity:
-        serviceQuantityPerDoor,
+      quantity: serviceQuantityPerDoor,
     });
   }
 
@@ -1227,22 +845,19 @@ const calculateVariant = async (
    * opening dimensions.
    */
   if (installationService) {
-    const installationPrice =
-      await calculateServicePrice(
-        installationService,
-        opening_width,
-        opening_height,
-        quantity,
-        eurRate,
-        uahToPlnRate,
-      );
+    const installationPrice = await calculateServicePrice(
+      installationService,
+      opening_width,
+      opening_height,
+      quantity,
+      eurRate,
+      uahToPlnRate,
+    );
 
-    variantCostPln +=
-      installationPrice;
+    variantCostPln += installationPrice;
 
     preparedServices.push({
-      service_id:
-        installationService.id,
+      service_id: installationService.id,
       rule_code: null,
       quantity,
     });
@@ -1261,24 +876,24 @@ const calculateVariant = async (
       opening_width,
       opening_height,
 
-      price_pln:
-        variantCostPln,
+      price_pln: variantCostPln,
 
       sides: preparedSides,
-      services:
-        preparedServices,
+      services: preparedServices,
     },
 
-    totalCostPln:
-      variantCostPln,
+    totalCostPln: variantCostPln,
   };
 };
 
 // Create a calculator item
-export const createCalculator = async (
-  data,
-) => {
+export const createCalculator = async (data) => {
   const {
+    // Link the calculator item to an offer.
+    // If no offer is provided, the calculator item
+    // remains standalone.
+    offer_id = null,
+
     product_id,
     title,
     side_a_option_id,
@@ -1293,112 +908,60 @@ export const createCalculator = async (
     variants,
   } = data;
 
-  if (
-    !Array.isArray(variants) ||
-    variants.length === 0
-  ) {
-    throw new Error(
-      'At least one door variant is required',
-    );
+  if (!Array.isArray(variants) || variants.length === 0) {
+    throw new Error('At least one door variant is required');
   }
 
-  const product =
-    await Calculator.getProductById(
-      product_id,
-    );
+  const product = await Calculator.getProductById(product_id);
 
   if (!product) {
-    throw new Error(
-      'Product not found',
-    );
+    throw new Error('Product not found');
   }
 
-  await validateOptionBelongsToProduct(
+  await validateOptionBelongsToProduct(product_id, side_a_option_id, 'FILLING');
+
+  await validateOptionBelongsToProduct(product_id, side_b_option_id, 'FILLING');
+
+  const profileFinishOption = await validateOptionBelongsToProduct(
     product_id,
-    side_a_option_id,
-    'FILLING',
+    profile_finish_option_id,
+    'PROFILE_FINISH',
   );
 
-  await validateOptionBelongsToProduct(
-    product_id,
-    side_b_option_id,
-    'FILLING',
+  const markupPercent = validatePercentage(markup_percent, 'Markup percent');
+
+  const discountPercent = validatePercentage(
+    discount_percent,
+    'Discount percent',
   );
 
-  const profileFinishOption =
-    await validateOptionBelongsToProduct(
-      product_id,
-      profile_finish_option_id,
-      'PROFILE_FINISH',
-    );
+  const vatRate = Number(vat);
 
-  const markupPercent =
-    validatePercentage(
-      markup_percent,
-      'Markup percent',
-    );
-
-  const discountPercent =
-    validatePercentage(
-      discount_percent,
-      'Discount percent',
-    );
-
-  const vatRate =
-    Number(vat);
-
-  if (
-    !Number.isFinite(vatRate) ||
-    ![0, 5, 8, 23].includes(
-      vatRate,
-    )
-  ) {
-    throw new Error(
-      'VAT must be 0, 5, 8 or 23',
-    );
+  if (!Number.isFinite(vatRate) || ![0, 5, 8, 23].includes(vatRate)) {
+    throw new Error('VAT must be 0, 5, 8 or 23');
   }
 
-  const eurRate =
-    Number(eur_rate);
+  const eurRate = Number(eur_rate);
 
-  if (
-    !Number.isFinite(eurRate) ||
-    eurRate <= 0
-  ) {
-    throw new Error(
-      'EUR to PLN exchange rate is required',
-    );
+  if (!Number.isFinite(eurRate) || eurRate <= 0) {
+    throw new Error('EUR to PLN exchange rate is required');
   }
 
-  let uahToPlnRate =
-    uah_to_pln_rate ?? null;
+  let uahToPlnRate = uah_to_pln_rate ?? null;
 
-  if (
-    uahToPlnRate !== null
-  ) {
-    uahToPlnRate =
-      Number(uahToPlnRate);
+  if (uahToPlnRate !== null) {
+    uahToPlnRate = Number(uahToPlnRate);
 
-    if (
-      !Number.isFinite(
-        uahToPlnRate,
-      ) ||
-      uahToPlnRate <= 0
-    ) {
-      throw new Error(
-        'UAH to PLN exchange rate must be greater than 0',
-      );
+    if (!Number.isFinite(uahToPlnRate) || uahToPlnRate <= 0) {
+      throw new Error('UAH to PLN exchange rate must be greater than 0');
     }
   }
 
-  let installationService =
-    null;
+  let installationService = null;
 
   if (installation_enabled) {
     installationService =
-      await Calculator.getInstallationServiceByProductId(
-        product_id,
-      );
+      await Calculator.getInstallationServiceByProductId(product_id);
 
     if (!installationService) {
       throw new Error(
@@ -1406,13 +969,8 @@ export const createCalculator = async (
       );
     }
 
-    if (
-      installationService.pricing_type !==
-      'BY_SIZE'
-    ) {
-      throw new Error(
-        'Installation service must use BY_SIZE pricing',
-      );
+    if (installationService.pricing_type !== 'BY_SIZE') {
+      throw new Error('Installation service must use BY_SIZE pricing');
     }
   }
 
@@ -1422,22 +980,18 @@ export const createCalculator = async (
 
   // Calculate every door variant separately.
   for (const variant of variants) {
-    const result =
-      await calculateVariant(
-        product_id,
-        variant,
-        profileFinishOption,
-        installationService,
-        eurRate,
-        uahToPlnRate,
-      );
-
-    totalCostPln +=
-      result.totalCostPln;
-
-    preparedVariants.push(
-      result.preparedVariant,
+    const result = await calculateVariant(
+      product_id,
+      variant,
+      profileFinishOption,
+      installationService,
+      eurRate,
+      uahToPlnRate,
     );
+
+    totalCostPln += result.totalCostPln;
+
+    preparedVariants.push(result.preparedVariant);
   }
 
   /*
@@ -1447,340 +1001,194 @@ export const createCalculator = async (
    * Therefore totalCostPln is the actual production
    * cost in PLN.
    */
-  const totalCostEur =
-    convertPlnToEur(
-      totalCostPln,
-      eurRate,
-    );
+  const totalCostEur = convertPlnToEur(totalCostPln, eurRate);
 
   // Add markup
-  const markupAmountEur =
-    totalCostEur *
-    (markupPercent / 100);
+  const markupAmountEur = totalCostEur * (markupPercent / 100);
 
-  const totalBeforeDiscountEur =
-    totalCostEur +
-    markupAmountEur;
+  const totalBeforeDiscountEur = totalCostEur + markupAmountEur;
 
   // Apply customer discount
-  const totalDiscountEur =
-    totalBeforeDiscountEur *
-    (discountPercent / 100);
+  const totalDiscountEur = totalBeforeDiscountEur * (discountPercent / 100);
 
-  const totalNetEur =
-    totalBeforeDiscountEur -
-    totalDiscountEur;
+  const totalNetEur = totalBeforeDiscountEur - totalDiscountEur;
 
   // Convert final net price back to PLN
-  const totalNetPln =
-    convertEurToPln(
-      totalNetEur,
-      eurRate,
-    );
+  const totalNetPln = convertEurToPln(totalNetEur, eurRate);
 
   // Calculate VAT
-  const vatAmountPln =
-    totalNetPln *
-    (vatRate / 100);
+  const vatAmountPln = totalNetPln * (vatRate / 100);
 
-  const totalGrossPln =
-    totalNetPln +
-    vatAmountPln;
+  const totalGrossPln = totalNetPln + vatAmountPln;
 
-  const connection =
-    await pool.getConnection();
+  const connection = await pool.getConnection();
 
   try {
     await connection.beginTransaction();
 
-    const calculatorItemId =
-      await Calculator.createCalculatorItem(
-        connection,
-        {
-          product_id,
-          title,
+    const calculatorItemId = await Calculator.createCalculatorItem(connection, {
+      // Link this calculator item to the offer.
+      // Null means that the calculator item is standalone.
+      offer_id,
 
-          side_a_option_id:
-            side_a_option_id ??
-            null,
+      product_id,
+      title,
 
-          side_b_option_id:
-            side_b_option_id ??
-            null,
+      side_a_option_id: side_a_option_id ?? null,
 
-          profile_finish_option_id:
-            profile_finish_option_id ??
-            null,
+      side_b_option_id: side_b_option_id ?? null,
 
-          installation_enabled,
+      profile_finish_option_id: profile_finish_option_id ?? null,
 
-          vat:
-            vatRate,
+      installation_enabled,
 
-          eur_rate:
-            eurRate,
+      vat: vatRate,
 
-          markup_percent:
-            markupPercent,
+      eur_rate: eurRate,
 
-          discount_percent:
-            discountPercent,
+      markup_percent: markupPercent,
 
-          total_cost_eur:
-            Number(
-              totalCostEur.toFixed(2),
-            ),
+      discount_percent: discountPercent,
 
-          total_before_discount_eur:
-            Number(
-              totalBeforeDiscountEur.toFixed(
-                2,
-              ),
-            ),
+      total_cost_eur: Number(totalCostEur.toFixed(2)),
 
-          total_discount_eur:
-            Number(
-              totalDiscountEur.toFixed(2),
-            ),
+      total_before_discount_eur: Number(totalBeforeDiscountEur.toFixed(2)),
 
-          total_net_pln:
-            Number(
-              totalNetPln.toFixed(2),
-            ),
+      total_discount_eur: Number(totalDiscountEur.toFixed(2)),
 
-          vat_amount_pln:
-            Number(
-              vatAmountPln.toFixed(2),
-            ),
+      total_net_pln: Number(totalNetPln.toFixed(2)),
 
-          total_gross_pln:
-            Number(
-              totalGrossPln.toFixed(2),
-            ),
-        },
-      );
+      vat_amount_pln: Number(vatAmountPln.toFixed(2)),
+
+      total_gross_pln: Number(totalGrossPln.toFixed(2)),
+    });
 
     const createdVariants = [];
 
     // Save every calculated variant.
-    for (
-      const variant of
-        preparedVariants
-    ) {
-      const variantId =
-        await Calculator.createDoorVariant(
-          connection,
-          {
-            calculator_item_id:
-              calculatorItemId,
+    for (const variant of preparedVariants) {
+      const variantId = await Calculator.createDoorVariant(connection, {
+        calculator_item_id: calculatorItemId,
 
-            variant_number:
-              variant.variant_number,
+        variant_number: variant.variant_number,
 
-            door_code:
-              variant.door_code,
+        door_code: variant.door_code,
 
-            quantity:
-              variant.quantity,
+        quantity: variant.quantity,
 
-            room:
-              variant.room ??
-              null,
+        room: variant.room ?? null,
 
-            leaf_width:
-              variant.leaf_width,
+        leaf_width: variant.leaf_width,
 
-            leaf_height:
-              variant.leaf_height,
+        leaf_height: variant.leaf_height,
 
-            opening_mode:
-              variant.opening_mode,
+        opening_mode: variant.opening_mode,
 
-            opening_width:
-              variant.opening_width,
+        opening_width: variant.opening_width,
 
-            opening_height:
-              variant.opening_height,
+        opening_height: variant.opening_height,
 
-            lock_code:
-              variant.lock_code ??
-              null,
+        lock_code: variant.lock_code ?? null,
 
-            handle_code:
-              variant.handle_code ??
-              null,
+        handle_code: variant.handle_code ?? null,
 
-            ventilation_code:
-              variant.ventilation_code ??
-              null,
+        ventilation_code: variant.ventilation_code ?? null,
 
-            lock_option_id:
-              variant.lock_option_id ??
-              null,
+        lock_option_id: variant.lock_option_id ?? null,
 
-            handle_option_id:
-              variant.handle_option_id ??
-              null,
+        handle_option_id: variant.handle_option_id ?? null,
 
-            ventilation_option_id:
-              variant.ventilation_option_id ??
-              null,
+        ventilation_option_id: variant.ventilation_option_id ?? null,
 
-            custom_handle_cost:
-              variant.custom_handle_cost ??
-              null,
+        custom_handle_cost: variant.custom_handle_cost ?? null,
 
-            custom_handle_currency:
-              variant.custom_handle_currency ??
-              'EUR',
-          },
-        );
+        custom_handle_currency: variant.custom_handle_currency ?? 'EUR',
+      });
 
       // Save both sides of the door.
-      for (
-        const side of
-          variant.sides
-      ) {
-        await Calculator.createDoorVariantSide(
-          connection,
-          {
-            door_variant_id:
-              variantId,
+      for (const side of variant.sides) {
+        await Calculator.createDoorVariantSide(connection, {
+          door_variant_id: variantId,
 
-            side:
-              side.side,
+          side: side.side,
 
-            option_id:
-              side.option_id,
-          },
-        );
+          option_id: side.option_id,
+        });
       }
 
       // Save all services assigned to the variant.
-      for (
-        const service of
-          variant.services
-      ) {
-        await Calculator.createDoorVariantOption(
-          connection,
-          {
-            door_variant_id:
-              variantId,
+      for (const service of variant.services) {
+        await Calculator.createDoorVariantOption(connection, {
+          door_variant_id: variantId,
 
-            service_id:
-              service.service_id,
+          service_id: service.service_id,
 
-            rule_code:
-              service.rule_code ??
-              null,
+          rule_code: service.rule_code ?? null,
 
-            quantity:
-              service.quantity,
-          },
-        );
+          quantity: service.quantity,
+        });
       }
 
       createdVariants.push({
-        id:
-          variantId,
+        id: variantId,
 
-        variant_number:
-          variant.variant_number,
+        variant_number: variant.variant_number,
 
-        door_code:
-          variant.door_code,
+        door_code: variant.door_code,
 
-        quantity:
-          variant.quantity,
+        quantity: variant.quantity,
 
-        leaf_width:
-          variant.leaf_width,
+        leaf_width: variant.leaf_width,
 
-        leaf_height:
-          variant.leaf_height,
+        leaf_height: variant.leaf_height,
 
-        opening_mode:
-          variant.opening_mode,
+        opening_mode: variant.opening_mode,
 
-        opening_width:
-          variant.opening_width,
+        opening_width: variant.opening_width,
 
-        opening_height:
-          variant.opening_height,
+        opening_height: variant.opening_height,
 
-        price_pln:
-          Number(
-            variant.price_pln.toFixed(
-              2,
-            ),
-          ),
+        price_pln: Number(variant.price_pln.toFixed(2)),
       });
     }
 
     await connection.commit();
 
     return {
-      calculator_item_id:
-        calculatorItemId,
+      calculator_item_id: calculatorItemId,
+
+      // Return the linked offer ID.
+      offer_id,
 
       product_id,
 
       title,
 
-      currency:
-        'PLN',
+      currency: 'PLN',
 
-      vat:
-        vatRate,
+      vat: vatRate,
 
-      eur_rate:
-        eurRate,
+      eur_rate: eurRate,
 
-      uah_to_pln_rate:
-        uahToPlnRate,
+      uah_to_pln_rate: uahToPlnRate,
 
-      markup_percent:
-        markupPercent,
+      markup_percent: markupPercent,
 
-      discount_percent:
-        discountPercent,
+      discount_percent: discountPercent,
 
-      total_cost_eur:
-        Number(
-          totalCostEur.toFixed(2),
-        ),
+      total_cost_eur: Number(totalCostEur.toFixed(2)),
 
-      total_before_discount_eur:
-        Number(
-          totalBeforeDiscountEur.toFixed(
-            2,
-          ),
-        ),
+      total_before_discount_eur: Number(totalBeforeDiscountEur.toFixed(2)),
 
-      total_discount_eur:
-        Number(
-          totalDiscountEur.toFixed(
-            2,
-          ),
-        ),
+      total_discount_eur: Number(totalDiscountEur.toFixed(2)),
 
-      total_net_pln:
-        Number(
-          totalNetPln.toFixed(2),
-        ),
+      total_net_pln: Number(totalNetPln.toFixed(2)),
 
-      vat_amount_pln:
-        Number(
-          vatAmountPln.toFixed(2),
-        ),
+      vat_amount_pln: Number(vatAmountPln.toFixed(2)),
 
-      total_gross_pln:
-        Number(
-          totalGrossPln.toFixed(2),
-        ),
+      total_gross_pln: Number(totalGrossPln.toFixed(2)),
 
-      variants:
-        createdVariants,
+      variants: createdVariants,
     };
   } catch (error) {
     await connection.rollback();
