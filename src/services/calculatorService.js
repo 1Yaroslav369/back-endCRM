@@ -886,6 +886,39 @@ const calculateVariant = async (
   };
 };
 
+// Update the total net price of an offer
+const updateOfferTotal = async (connection, offerId) => {
+  if (!offerId) {
+    return null;
+  }
+
+  const [rows] = await connection.execute(
+    `
+    SELECT
+      COALESCE(SUM(total_net_pln), 0) AS total_net_pln
+    FROM calculator_items
+    WHERE offer_id = ?
+    `,
+    [offerId],
+  );
+
+  const totalNetPln = Number(rows[0]?.total_net_pln || 0);
+
+  await connection.execute(
+    `
+    UPDATE offers
+    SET
+      net_price = ?,
+      updated_at = CURRENT_TIMESTAMP
+    WHERE id = ?
+      AND is_archived = 0
+    `,
+    [Number(totalNetPln.toFixed(2)), offerId],
+  );
+
+  return Number(totalNetPln.toFixed(2));
+};
+
 // Create a calculator item
 export const createCalculator = async (data) => {
   const {
@@ -1026,6 +1059,7 @@ export const createCalculator = async (data) => {
   try {
     await connection.beginTransaction();
 
+    // Create the calculator item
     const calculatorItemId = await Calculator.createCalculatorItem(connection, {
       // Link this calculator item to the offer.
       // Null means that the calculator item is standalone.
@@ -1152,6 +1186,20 @@ export const createCalculator = async (data) => {
       });
     }
 
+    /*
+     * If this calculator item belongs to an offer,
+     * recalculate the offer total from all its
+     * calculator items.
+     *
+     * This keeps offers.net_price synchronized
+     * with the actual calculator positions.
+     */
+    let offerTotalNetPln = null;
+
+    if (offer_id) {
+      offerTotalNetPln = await updateOfferTotal(connection, offer_id);
+    }
+
     await connection.commit();
 
     return {
@@ -1187,6 +1235,9 @@ export const createCalculator = async (data) => {
       vat_amount_pln: Number(vatAmountPln.toFixed(2)),
 
       total_gross_pln: Number(totalGrossPln.toFixed(2)),
+
+      // Total net price of the entire offer.
+      offer_total_net_pln: offerTotalNetPln,
 
       variants: createdVariants,
     };
